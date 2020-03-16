@@ -1,15 +1,19 @@
-#include <iostream>
-#include <vector>
 #include "process/process.hpp"
+#include <cassert>
+#include <vector>
 
 int main() {
-    std::string path = "/home/danm/code/process-wrapper/cmake-build-debug/echo";
+
+  std::vector<char> sendbuf(1024 * 16, 'a');
+  std::vector<char> recvbuf(1024 * 16, '\0');
+  for (int i = 0; i < 100000; ++i) {
+    std::string path = "/home/danm/code/cpp-tp-advanced/cmake-build-release/echo";
     Process p{path};
-    std::vector<char> sendbuf(1024 * 16, 'a');
-    std::vector<char> recvbuf(1024 * 16 + 1, '\0');
     p.writeExact(sendbuf.data(), sendbuf.size());
     p.closeStdin();
-    std::cout << p.read(&recvbuf[0], sendbuf.size()) << '\n';
-    std::cout << std::string(&recvbuf[0]) << '\n';
-
+    p.readExact(&recvbuf[0], sendbuf.size());
+    assert(recvbuf == sendbuf);
+    sendbuf.clear();
+    recvbuf.clear();
+  }
 }

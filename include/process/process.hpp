@@ -1,33 +1,33 @@
 #ifndef PROCESS_WRAPPER_PROCESS_HPP
 #define PROCESS_WRAPPER_PROCESS_HPP
 
-#include <string>
-#include <cstddef>
-#include <unistd.h>
 #include "process/descriptor.hpp"
+#include <cstddef>
+#include <string>
+#include <unistd.h>
 
 class Process {
 public:
-    explicit Process(const std::string &path);
+  explicit Process(const std::string &path);
 
-    ~Process();
+  ~Process();
 
-    std::size_t read(void *data, size_t len);
+  std::size_t read(void *data, std::size_t len);
 
-    std::size_t write(const void *data, size_t len);
+  std::size_t write(const void *data, std::size_t len);
 
-    void readExact(void *data, size_t len);
+  void readExact(void *data, std::size_t len);
 
-    void writeExact(const void *data, size_t len);
+  void writeExact(const void *data, std::size_t len);
 
-    void closeStdin();
+  void closeStdin();
+
+  void close();
 
 private:
-    pid_t child_pid_;
-    Descriptor reader_;
-    Descriptor writer_;
-
-    void close();
+  pid_t child_pid_;
+  Descriptor reader_;
+  Descriptor writer_;
 };
 
-#endif //PROCESS_WRAPPER_PROCESS_HPP
+#endif // PROCESS_WRAPPER_PROCESS_HPP

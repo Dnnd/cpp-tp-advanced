@@ -1,12 +1,11 @@
 #ifndef PROCESS_WRAPPER_PIPE_HPP
 #define PROCESS_WRAPPER_PIPE_HPP
 
-#include <cstring>
 #include "descriptor.hpp"
+#include <utility>
 
 using Pipe = std::pair<Descriptor, Descriptor>;
 
-Pipe make_pipe();
+[[nodiscard]] Pipe make_pipe();
 
-
-#endif //PROCESS_WRAPPER_PIPE_HPP
+#endif // PROCESS_WRAPPER_PIPE_HPP

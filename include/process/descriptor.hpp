@@ -1,38 +1,40 @@
 #ifndef PROCESS_WRAPPER_DESCRIPTOR_HPP
 #define PROCESS_WRAPPER_DESCRIPTOR_HPP
 
-#include <unistd.h>
+#include <cstddef>
 
 class Descriptor {
-    static constexpr int FD_CLOSED = -1;
+private:
+  static constexpr int FD_CLOSED = -1;
+
 public:
-    explicit Descriptor(int fd);
-    Descriptor();
+  explicit Descriptor(int fd);
+  Descriptor();
 
-    Descriptor(Descriptor &&other) noexcept;
+  Descriptor(Descriptor &&other) noexcept;
 
-    Descriptor(const Descriptor &other) = delete;
+  Descriptor(const Descriptor &other) = delete;
 
-    Descriptor &operator=(const Descriptor &other) = delete;
+  Descriptor &operator=(const Descriptor &other) = delete;
 
-    Descriptor &operator=(Descriptor &&other) noexcept;
+  Descriptor &operator=(Descriptor &&other) noexcept;
 
-    size_t write(const void *data, size_t len);
+  std::size_t write(const void *data, std::size_t len);
 
-    size_t read(void *data, size_t len);
+  std::size_t read(void *data, std::size_t len);
 
-    void bind(int fd);
+  void bind(int fd);
 
-    void writeExact(const void *data, size_t len);
+  void writeExact(const void *data, std::size_t len);
 
-    void readExact(void *data, size_t len);
+  void readExact(void *data, std::size_t len);
 
-    void close();
+  void close() noexcept;
 
-    ~Descriptor();
+  ~Descriptor();
 
 private:
-    int fd_;
+  int fd_;
 };
 
-#endif //PROCESS_WRAPPER_DESCRIPTOR_HPP
+#endif // PROCESS_WRAPPER_DESCRIPTOR_HPP
