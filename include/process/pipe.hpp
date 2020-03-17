@@ -2,9 +2,11 @@
 #define PROCESS_WRAPPER_PIPE_HPP
 
 #include "descriptor.hpp"
-#include <utility>
 
-using Pipe = std::pair<Descriptor, Descriptor>;
+struct Pipe {
+  Descriptor reader;
+  Descriptor writer;
+};
 
 [[nodiscard]] Pipe make_pipe();
 

@@ -8,5 +8,3 @@ add_subdirectory(examples)
 
 add_library(process STATIC lib/process/process.cpp lib/process/descriptor.cpp lib/process/pipe.cpp)
 target_include_directories(process PUBLIC include)
-
-add_executable(echo src/echo/main.cpp src/echo/main.cpp)

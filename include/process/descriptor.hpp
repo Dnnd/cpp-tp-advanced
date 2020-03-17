@@ -33,6 +33,8 @@ public:
 
   ~Descriptor();
 
+  bool isClosed() const;
+
 private:
   int fd_;
 };

@@ -1,4 +1,6 @@
+#include <cstddef>
 #include <cstring>
+#include <fcntl.h>
 #include <process/descriptor.hpp>
 #include <stdexcept>
 #include <unistd.h>
@@ -65,9 +67,7 @@ void Descriptor::close() noexcept {
 }
 
 Descriptor::Descriptor(int fd) : fd_{fd} {
-  if (fd == FD_CLOSED) {
-    throw std::runtime_error("invalid descriptor");
-  }
+
 }
 
 Descriptor::Descriptor(Descriptor &&other) noexcept : fd_{other.fd_} {
@@ -96,3 +96,19 @@ Descriptor &Descriptor::operator=(Descriptor &&other) noexcept {
 }
 
 Descriptor::Descriptor() : fd_{FD_CLOSED} {}
+
+bool Descriptor::isClosed() const {
+  if (fd_ == FD_CLOSED) {
+    return true;
+  }
+  int status = fcntl(fd_, F_GETFD);
+  if (status == -1) {
+    if (errno == EBADF) {
+      return true;
+    }
+    throw std::runtime_error(
+        "failed fcntl() syscall in Descriptor::isClosed: "s +
+        std::strerror(errno));
+  }
+  return false;
+}

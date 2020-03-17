@@ -4,6 +4,7 @@
 #include <process/pipe.hpp>
 #include <stdexcept>
 #include <wait.h>
+using namespace std::string_literals;
 
 Process::Process(const std::string &path)
     : reader_{}, writer_{}, child_pid_{0} {
@@ -14,9 +15,11 @@ Process::Process(const std::string &path)
   pid_t child_pid = fork();
   switch (child_pid) {
   case -1: {
-    throw std::runtime_error(std::strerror(errno));
+    throw std::runtime_error("failed fork() syscall in Process constructor: "s +
+                             std::strerror(errno));
   }
   case 0: {
+    // Дочерний процесс
     parent_write.close();
     parent_read.close();
     child_read.bind(STDIN_FILENO);
@@ -24,11 +27,14 @@ Process::Process(const std::string &path)
 
     auto filename = std::filesystem::path(path).filename();
     if (execl(path.c_str(), filename.c_str(), NULL) == -1) {
+      // Дочерниий процесс не смог выполнить execl, завершаем его
+      std::perror(std::strerror(errno));
       exit(EXIT_FAILURE);
     }
     break;
   }
   default: {
+    // Родительский процесс
     child_pid_ = child_pid;
     child_read.close();
     child_write.close();
@@ -69,3 +75,4 @@ void Process::close() {
   writer_.close();
   reader_.close();
 }
+bool Process::isReadable() const { return !reader_.isClosed(); }

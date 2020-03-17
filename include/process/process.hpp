@@ -20,6 +20,8 @@ public:
 
   void writeExact(const void *data, std::size_t len);
 
+  bool isReadable() const;
+
   void closeStdin();
 
   void close();
