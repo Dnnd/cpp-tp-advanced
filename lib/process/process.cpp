@@ -78,8 +78,7 @@ std::size_t Process::write(const void *data, std::size_t len) {
 void Process::readExact(void *data, std::size_t len) {
   std::size_t total = 0;
   while (total < len) {
-    std::size_t got =
-        this->read(static_cast<char *>(data) + total, len - total);
+    std::size_t got = read(static_cast<char *>(data) + total, len - total);
     if (total != len && got == 0) {
       throw std::runtime_error("EOF encountered in readExact method, read "s +
                                std::to_string(total) + " bytes");
@@ -91,8 +90,7 @@ void Process::readExact(void *data, std::size_t len) {
 void Process::writeExact(const void *data, std::size_t len) {
   std::size_t total = 0;
   while (total < len) {
-    auto sent =
-        this->write(static_cast<const char *>(data) + total, len - total);
+    auto sent = write(static_cast<const char *>(data) + total, len - total);
     if (total != len && sent == 0) {
       throw std::runtime_error("EOF encountered in writeExact method, wrote "s +
                                std::to_string(total) + " bytes");
