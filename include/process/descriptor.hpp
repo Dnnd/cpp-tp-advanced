@@ -19,15 +19,9 @@ public:
 
   Descriptor &operator=(Descriptor &&other) noexcept;
 
-  std::size_t write(const void *data, std::size_t len);
-
-  std::size_t read(void *data, std::size_t len);
+  explicit operator int() const;
 
   void bind(int fd);
-
-  void writeExact(const void *data, std::size_t len);
-
-  void readExact(void *data, std::size_t len);
 
   void close() noexcept;
 

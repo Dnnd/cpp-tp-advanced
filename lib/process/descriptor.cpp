@@ -7,56 +7,6 @@
 
 using namespace std::string_literals;
 
-std::size_t Descriptor::write(const void *data, std::size_t len) {
-  if (fd_ == FD_CLOSED) {
-    throw std::runtime_error("write on closed descriptor");
-  }
-  ssize_t sent = ::write(fd_, data, len);
-  if (sent == -1) {
-    throw std::runtime_error(
-        "fail to perform write() syscall in Descriptor::write"s +
-        std::strerror(errno));
-  }
-  return sent;
-}
-
-std::size_t Descriptor::read(void *data, std::size_t len) {
-  if (fd_ == FD_CLOSED) {
-    throw std::runtime_error("read on closed descriptor");
-  }
-  ssize_t got = ::read(fd_, data, len);
-  if (got == -1) {
-    throw std::runtime_error("unable to perform Descriptor::read"s +
-                             std::strerror(errno));
-  }
-  return got;
-}
-
-void Descriptor::writeExact(const void *data, std::size_t len) {
-  std::size_t total = 0;
-  while (total < len) {
-    auto sent =
-        this->write(static_cast<const char *>(data) + total, len - total);
-    if (total != len && sent == 0) {
-      throw std::runtime_error("EOF encountered in writeExact method");
-    }
-    total += sent;
-  }
-}
-
-void Descriptor::readExact(void *data, std::size_t len) {
-  std::size_t total = 0;
-  while (total < len) {
-    std::size_t got =
-        this->read(static_cast<char *>(data) + total, len - total);
-    if (total != len && got == 0) {
-      throw std::runtime_error("EOF encountered in readExact method, read "s +
-                               std::to_string(total) + " bytes");
-    }
-    total += got;
-  }
-}
-
 Descriptor::~Descriptor() { this->close(); }
 
 void Descriptor::close() noexcept {
@@ -66,9 +16,7 @@ void Descriptor::close() noexcept {
   }
 }
 
-Descriptor::Descriptor(int fd) : fd_{fd} {
-
-}
+Descriptor::Descriptor(int fd) : fd_{fd} {}
 
 Descriptor::Descriptor(Descriptor &&other) noexcept : fd_{other.fd_} {
   other.fd_ = FD_CLOSED;
@@ -112,3 +60,4 @@ bool Descriptor::isClosed() const {
   }
   return false;
 }
+Descriptor::operator int() const { return fd_; }

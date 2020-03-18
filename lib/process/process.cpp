@@ -47,26 +47,58 @@ Process::Process(const std::string &path)
 
 Process::~Process() {
   this->close();
-  if (waitpid(child_pid_, NULL, WNOHANG) == 0) {
-    kill(child_pid_, SIGKILL);
-    wait(NULL);
+  // ждем в цикле на случай, если waitpid прервали сигналом (errno & EINTR)
+  while (true) {
+    pid_t ret = waitpid(child_pid_, NULL, 0);
+    if (ret == child_pid_ || (ret == -1 && !(errno & EINTR))) {
+      return;
+    }
   }
 }
 
 std::size_t Process::read(void *data, std::size_t len) {
-  return reader_.read(data, len);
+  ssize_t got = ::read(static_cast<int>(reader_), data, len);
+  if (got == -1) {
+    throw std::runtime_error("unable to perform Process::read "s +
+                             std::strerror(errno));
+  }
+  return got;
 }
 
 std::size_t Process::write(const void *data, std::size_t len) {
-  return writer_.write(data, len);
+  ssize_t sent = ::write(static_cast<int>(writer_), data, len);
+  if (sent == -1) {
+    throw std::runtime_error(
+        "fail to perform write() syscall in Process::write "s +
+        std::strerror(errno));
+  }
+  return sent;
 }
 
 void Process::readExact(void *data, std::size_t len) {
-  reader_.readExact(data, len);
+  std::size_t total = 0;
+  while (total < len) {
+    std::size_t got =
+        this->read(static_cast<char *>(data) + total, len - total);
+    if (total != len && got == 0) {
+      throw std::runtime_error("EOF encountered in readExact method, read "s +
+                               std::to_string(total) + " bytes");
+    }
+    total += got;
+  }
 }
 
 void Process::writeExact(const void *data, std::size_t len) {
-  writer_.writeExact(data, len);
+  std::size_t total = 0;
+  while (total < len) {
+    auto sent =
+        this->write(static_cast<const char *>(data) + total, len - total);
+    if (total != len && sent == 0) {
+      throw std::runtime_error("EOF encountered in writeExact method, wrote "s +
+                               std::to_string(total) + " bytes");
+    }
+    total += sent;
+  }
 }
 
 void Process::closeStdin() { writer_.close(); }
