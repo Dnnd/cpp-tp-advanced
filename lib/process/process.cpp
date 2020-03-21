@@ -25,7 +25,7 @@ Process::Process(const std::string &path)
     child_read.bind(STDIN_FILENO);
     child_write.bind(STDOUT_FILENO);
 
-    auto filename = std::filesystem::path(path).filename();
+    std::string filename = std::filesystem::path(path).filename();
     if (execl(path.c_str(), filename.c_str(), NULL) == -1) {
       // Дочерниий процесс не смог выполнить execl, завершаем его
       std::perror(std::strerror(errno));
@@ -46,7 +46,7 @@ Process::Process(const std::string &path)
 }
 
 Process::~Process() {
-  this->close();
+  close();
   // ждем в цикле на случай, если waitpid прервали сигналом (errno & EINTR)
   while (true) {
     pid_t ret = waitpid(child_pid_, NULL, 0);
@@ -57,7 +57,7 @@ Process::~Process() {
 }
 
 std::size_t Process::read(void *data, std::size_t len) {
-  ssize_t got = ::read(static_cast<int>(reader_), data, len);
+  ssize_t got = ::read(reader_.getUnderlyingDescriptor(), data, len);
   if (got == -1) {
     throw std::runtime_error("unable to perform Process::read "s +
                              std::strerror(errno));
@@ -66,7 +66,7 @@ std::size_t Process::read(void *data, std::size_t len) {
 }
 
 std::size_t Process::write(const void *data, std::size_t len) {
-  ssize_t sent = ::write(static_cast<int>(writer_), data, len);
+  ssize_t sent = ::write(writer_.getUnderlyingDescriptor(), data, len);
   if (sent == -1) {
     throw std::runtime_error(
         "fail to perform write() syscall in Process::write "s +
@@ -90,7 +90,8 @@ void Process::readExact(void *data, std::size_t len) {
 void Process::writeExact(const void *data, std::size_t len) {
   std::size_t total = 0;
   while (total < len) {
-    auto sent = write(static_cast<const char *>(data) + total, len - total);
+    std::size_t sent =
+        write(static_cast<const char *>(data) + total, len - total);
     if (total != len && sent == 0) {
       throw std::runtime_error("EOF encountered in writeExact method, wrote "s +
                                std::to_string(total) + " bytes");

@@ -19,7 +19,7 @@ public:
 
   Descriptor &operator=(Descriptor &&other) noexcept;
 
-  explicit operator int() const;
+  int getUnderlyingDescriptor() const noexcept ;
 
   void bind(int fd);
 

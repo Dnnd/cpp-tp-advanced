@@ -24,7 +24,7 @@ Descriptor::Descriptor(Descriptor &&other) noexcept : fd_{other.fd_} {
 
 void Descriptor::bind(int new_fd) {
   if (fd_ == FD_CLOSED) {
-    this->fd_ = new_fd;
+    fd_ = new_fd;
     return;
   }
   if (dup2(fd_, new_fd) == -1) {
@@ -38,7 +38,7 @@ void Descriptor::bind(int new_fd) {
 
 Descriptor &Descriptor::operator=(Descriptor &&other) noexcept {
   close();
-  this->fd_ = other.fd_;
+  fd_ = other.fd_;
   other.fd_ = FD_CLOSED;
   return *this;
 }
@@ -60,4 +60,4 @@ bool Descriptor::isClosed() const {
   }
   return false;
 }
-Descriptor::operator int() const { return fd_; }
+int Descriptor::getUnderlyingDescriptor() const noexcept { return fd_; }
