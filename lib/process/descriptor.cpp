@@ -24,16 +24,14 @@ Descriptor::Descriptor(Descriptor &&other) noexcept : fd_{other.fd_} {
 
 void Descriptor::bind(int new_fd) {
   if (fd_ == FD_CLOSED) {
-    fd_ = new_fd;
-    return;
+    throw std::runtime_error("unable to bind file descriptor to closed file "
+                             "descriptor in Descriptor::bind");
   }
   if (dup2(fd_, new_fd) == -1) {
     throw std::runtime_error(
         "fail to perform dup2() syscall in Descriptor::bind on :"s +
         std::to_string(new_fd) + ": " + std::strerror(errno));
   }
-  close();
-  fd_ = new_fd;
 }
 
 Descriptor &Descriptor::operator=(Descriptor &&other) noexcept {
