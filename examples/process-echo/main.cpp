@@ -2,6 +2,7 @@
 #include <cassert>
 #include <iostream>
 #include <vector>
+#include <algorithm>
 
 int main(int argc, char **argv) {
   if (argc < 2) {
@@ -20,7 +21,7 @@ int main(int argc, char **argv) {
     p.readExact(recvbuf.data(), sendbuf.size());
     assert(recvbuf == sendbuf);
     std::transform(recvbuf.begin(), recvbuf.end(), recvbuf.begin(),
-                   [](auto a) { return '\0'; });
+                   [](char a) { return '\0'; });
   }
   {
     Process p{argv[1]};

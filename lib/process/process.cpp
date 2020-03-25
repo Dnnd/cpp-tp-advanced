@@ -6,7 +6,7 @@
 #include <wait.h>
 using namespace std::string_literals;
 
-Process::Process(const std::string &path)
+Process::Process(const std::string &path, const std::vector<std::string> &args)
     : reader_{}, writer_{}, child_pid_{0} {
 
   auto [child_read, parent_write] = make_pipe();
@@ -22,11 +22,22 @@ Process::Process(const std::string &path)
     // Дочерний процесс
     parent_write.close();
     parent_read.close();
+
     child_read.bind(STDIN_FILENO);
     child_write.bind(STDOUT_FILENO);
 
-    std::string filename = std::filesystem::path(path).filename();
-    if (execl(path.c_str(), filename.c_str(), NULL) == -1) {
+    child_read.close();
+    child_write.close();
+
+    char *filename = const_cast<char *>(std::filesystem::path(path).c_str());
+    std::vector<char *> syscall_args{filename};
+    syscall_args.reserve(args.size() + 1);
+    std::transform(
+        args.begin(), args.end(), std::back_inserter(syscall_args),
+        [](const std::string &arg) { return const_cast<char *>(arg.data()); });
+    syscall_args.push_back(NULL);
+
+    if (execv(path.c_str(), syscall_args.data()) == -1) {
       // Дочерниий процесс не смог выполнить execl, завершаем его
       std::perror(std::strerror(errno));
       exit(EXIT_FAILURE);
@@ -45,8 +56,12 @@ Process::Process(const std::string &path)
   }
 }
 
-Process::~Process() {
-  close();
+Process::~Process() noexcept {
+  try {
+    close();
+  } catch (...) {
+    // явно игнорируем исключения в деструкторе
+  }
   // ждем в цикле на случай, если waitpid прервали сигналом (errno & EINTR)
   while (true) {
     pid_t ret = waitpid(child_pid_, NULL, 0);
@@ -103,7 +118,7 @@ void Process::writeExact(const void *data, std::size_t len) {
 void Process::closeStdin() { writer_.close(); }
 
 void Process::close() {
-  writer_.close();
+  closeStdin();
   reader_.close();
 }
 bool Process::isReadable() const { return !reader_.isClosed(); }

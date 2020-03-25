@@ -5,12 +5,14 @@
 #include <cstddef>
 #include <string>
 #include <unistd.h>
+#include <vector>
 
 class Process {
 public:
-  explicit Process(const std::string &path);
+  // Помечен как explicit, потому что у args есть значение по-умолчанию
+  explicit Process(const std::string &path, const std::vector<std::string> &args = {});
 
-  ~Process();
+  ~Process() noexcept ;
 
   std::size_t read(void *data, std::size_t len);
 

@@ -7,13 +7,27 @@
 
 using namespace std::string_literals;
 
-Descriptor::~Descriptor() { close(); }
+constexpr int FD_CLOSED = -1;
 
-void Descriptor::close() noexcept {
-  if (fd_ != FD_CLOSED) {
-    ::close(fd_);
-    fd_ = FD_CLOSED;
+Descriptor::~Descriptor() noexcept {
+  try {
+    close();
+  } catch (...) {
+    // намеренно игнорируем исключения в деструкторе
   }
+}
+
+void Descriptor::close() {
+  if (fd_ == FD_CLOSED) {
+    return;
+  }
+  int ret = ::close(fd_);
+  if (ret == -1) {
+    throw std::runtime_error(
+        "unable to close descriptor in Descriptor::close: "s + std::to_string(fd_) + " " +
+        std::strerror(errno));
+  }
+  fd_ = FD_CLOSED;
 }
 
 Descriptor::Descriptor(int fd) : fd_{fd} {}

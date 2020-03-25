@@ -4,9 +4,6 @@
 #include <cstddef>
 
 class Descriptor {
-private:
-  static constexpr int FD_CLOSED = -1;
-
 public:
   explicit Descriptor(int fd);
   Descriptor();
@@ -19,13 +16,13 @@ public:
 
   Descriptor &operator=(Descriptor &&other) noexcept;
 
-  int getUnderlyingDescriptor() const noexcept ;
+  int getUnderlyingDescriptor() const noexcept;
 
   void bind(int fd);
 
-  void close() noexcept;
+  void close();
 
-  ~Descriptor();
+  ~Descriptor() noexcept ;
 
   bool isClosed() const;
 
