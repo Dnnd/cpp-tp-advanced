@@ -22,7 +22,7 @@ public:
 
   void close();
 
-  ~Descriptor() noexcept ;
+  ~Descriptor() noexcept;
 
   bool isClosed() const;
 

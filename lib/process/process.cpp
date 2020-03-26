@@ -1,7 +1,8 @@
 #include "process/process.hpp"
+#include "process/pipe.hpp"
+#include <algorithm>
 #include <cstring>
 #include <filesystem>
-#include <process/pipe.hpp>
 #include <stdexcept>
 #include <wait.h>
 using namespace std::string_literals;
@@ -59,7 +60,7 @@ Process::Process(const std::string &path, const std::vector<std::string> &args)
 Process::~Process() noexcept {
   try {
     close();
-  } catch (...) {
+  } catch (std::runtime_error &) {
     // явно игнорируем исключения в деструкторе
   }
   // ждем в цикле на случай, если waitpid прервали сигналом (errno & EINTR)

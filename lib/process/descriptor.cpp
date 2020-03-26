@@ -1,18 +1,18 @@
+#include "process/descriptor.hpp"
 #include <cstddef>
 #include <cstring>
 #include <fcntl.h>
-#include <process/descriptor.hpp>
 #include <stdexcept>
 #include <unistd.h>
 
 using namespace std::string_literals;
 
-constexpr int FD_CLOSED = -1;
+static constexpr int FD_CLOSED = -1;
 
 Descriptor::~Descriptor() noexcept {
   try {
     close();
-  } catch (...) {
+  } catch (std::runtime_error &e) {
     // намеренно игнорируем исключения в деструкторе
   }
 }
@@ -24,8 +24,8 @@ void Descriptor::close() {
   int ret = ::close(fd_);
   if (ret == -1) {
     throw std::runtime_error(
-        "unable to close descriptor in Descriptor::close: "s + std::to_string(fd_) + " " +
-        std::strerror(errno));
+        "unable to close descriptor in Descriptor::close: "s +
+        std::to_string(fd_) + " " + std::strerror(errno));
   }
   fd_ = FD_CLOSED;
 }
