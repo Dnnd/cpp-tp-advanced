@@ -1,7 +1,7 @@
+#include "log/logger.hpp"
 #include <filesystem>
 #include <getopt.h>
-#include <iostream>
-#include "log/logger.hpp"
+#include <optional>
 
 struct Config {
   log::Level log_level = log::Level::INFO;
@@ -20,8 +20,8 @@ Config parse_cli_opts(int argc, char *const argv[]) {
       .name = "error", .has_arg = no_argument, .flag = 0, .val = 'e'};
   constexpr option logfile = {
       .name = "logfile", .has_arg = required_argument, .flag = 0, .val = 'l'};
-  constexpr struct option long_options[] = {debug, info,    warn,
-                                            error, logfile, {0, 0, 0, 0}};
+  constexpr option long_options[] = {debug, info,    warn,
+                                     error, logfile, {0, 0, 0, 0}};
   int option_index = 0;
   while (true) {
     int opt = getopt_long(argc, argv, "diwel:", long_options, &option_index);
