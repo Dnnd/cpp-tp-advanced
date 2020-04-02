@@ -20,3 +20,6 @@ set(LOG_SOURCES lib/log/base_logger.cpp
 
 add_library(log STATIC ${LOG_SOURCES})
 target_include_directories(log PUBLIC include)
+
+add_library(tcp STATIC lib/tcp/connection.cpp lib/tcp/utils.cpp lib/tcp/server.cpp lib/tcp/exceptions.cpp)
+target_include_directories(tcp PUBLIC include)
