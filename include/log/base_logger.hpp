@@ -1,7 +1,7 @@
 #ifndef PROCESS_WRAPPER_LIB_LOG_BASE_LOGGER_HPP_
 #define PROCESS_WRAPPER_LIB_LOG_BASE_LOGGER_HPP_
 #include "log/level.hpp"
-#include <functional>
+
 namespace log {
 class BaseLogger {
 public:
@@ -10,8 +10,8 @@ public:
   void error(const std::string &message);
   void info(const std::string &message);
   void warn(const std::string &message);
-  void set_level(Level level_);
-  [[nodiscard]] Level get_level() const;
+  void set_level(Level level_) noexcept;
+  [[nodiscard]] Level get_level() const noexcept;
   virtual ~BaseLogger() = default;
   virtual void flush() = 0;
   [[nodiscard]] bool willBeLogged(Level level) const noexcept;

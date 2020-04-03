@@ -5,13 +5,13 @@ Logger &Logger::get_instance() {
   static Logger logger_;
   return logger_;
 }
-Logger::Logger() : global_logger_{nullptr} {}
+Logger::Logger() : global_logger_{create_stderr_logger()} {}
 
 void Logger::set_global_logger(std::unique_ptr<BaseLogger> global_logger) {
-  if (global_logger == nullptr) {
+  if (!global_logger) {
     throw std::runtime_error("set_global_logger called with nullptr");
   }
-  global_logger_.swap(global_logger);
+  global_logger_ = std::move(global_logger);
 }
 
 BaseLogger &Logger::get_global_logger() { return *global_logger_; }
