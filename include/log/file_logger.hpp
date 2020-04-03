@@ -7,7 +7,7 @@ class FileLogger : public BaseLogger {
 public:
   explicit FileLogger(const std::string &log_file, Level level = Level ::ERROR);
   void flush() override;
-  [[nodiscard]] std::string get_logfile() const;
+  [[nodiscard]] const std::string &get_logfile() const noexcept;
 
 protected:
   void log(const std::string &string, Level level) override;

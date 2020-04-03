@@ -16,7 +16,7 @@ private:
 class FileLogError : public LogError {
 public:
   FileLogError(std::string message, std::string log_file);
-  [[nodiscard]] std::string log_file() const noexcept;
+  [[nodiscard]] const std::string& log_file() const noexcept;
 
 private:
   std::string path_;

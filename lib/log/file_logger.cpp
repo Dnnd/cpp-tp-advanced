@@ -1,7 +1,7 @@
 #include "log/file_logger.hpp"
 #include "log/exceptions.hpp"
 #include "log/message.hpp"
-namespace log{
+namespace log {
 void FileLogger::flush() { sink_.flush(); }
 
 void FileLogger::log(const std::string &message, Level level) {
@@ -19,5 +19,5 @@ FileLogger::FileLogger(const std::string &log_file, Level level)
     throw FileLogError("unable to open file for writing", log_file);
   }
 }
-std::string FileLogger::get_logfile() const { return logfile_; }
-}
+const std::string &FileLogger::get_logfile() const noexcept { return logfile_; }
+} // namespace log
