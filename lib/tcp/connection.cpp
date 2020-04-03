@@ -70,6 +70,9 @@ std::size_t Connection::read(void *data, std::size_t len) {
                               std::strerror(errno),
                           local_socket, remote_socket);
   }
+  if (got == 0) {
+    close();
+  }
   return got;
 }
 std::size_t Connection::write(const void *data, std::size_t len) {
