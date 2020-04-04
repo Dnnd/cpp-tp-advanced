@@ -133,7 +133,7 @@ Connection::Connection(Connection &&other) noexcept
 
 Connection &Connection::operator=(Connection &&other) noexcept {
   Connection tmp{std::move(other)};
-  this->swap(tmp);
+  swap(tmp);
   return *this;
 }
 
