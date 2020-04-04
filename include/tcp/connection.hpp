@@ -1,5 +1,6 @@
 #ifndef PROCESS_WRAPPER_INCLUDE_TCP_CONNECTION_HPP_
 #define PROCESS_WRAPPER_INCLUDE_TCP_CONNECTION_HPP_
+#include "sockinfo.hpp"
 #include <cstdint>
 #include <netinet/in.h>
 #include <string>
@@ -41,8 +42,8 @@ private:
   explicit Connection(int fd);
   void setTimeout(int fd, time_t timeout_sec) const;
   int fd_;
-  sockaddr_in local_socket;
-  sockaddr_in remote_socket;
+  Sockinfo local_socket;
+  Sockinfo remote_socket;
 };
 } // namespace tcp
 #endif // PROCESS_WRAPPER_INCLUDE_TCP_CONNECTION_HPP_

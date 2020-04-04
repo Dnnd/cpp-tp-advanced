@@ -1,6 +1,7 @@
 #ifndef PROCESS_WRAPPER_INCLUDE_TCP_SERVER_HPP_
 #define PROCESS_WRAPPER_INCLUDE_TCP_SERVER_HPP_
 #include "connection.hpp"
+#include "sockinfo.hpp"
 #include <cstdint>
 #include <string>
 
@@ -22,9 +23,11 @@ public:
   friend Connection::Connection(int fd);
   void swap(Server &other) noexcept;
 
+  [[nodiscard]] Sockinfo getServerSocketInfo() const noexcept;
+
 private:
   int fd_;
-  sockaddr_in socket_;
+  Sockinfo socket_;
 };
 } // namespace tcp
 #endif // PROCESS_WRAPPER_INCLUDE_TCP_SERVER_HPP_

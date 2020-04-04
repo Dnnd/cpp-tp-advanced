@@ -9,7 +9,8 @@ constexpr int FD_CLOSED = -1;
 
 void Server::open(const std::string &hostname, uint16_t port) {
   Server server{hostname, port};
-  std::swap(*this, server);
+  // swap дешевле присваивания, потому что присваивание реализовано через swap
+  swap(server);
 }
 Server::Server(const std::string &hostname, uint16_t port)
     : fd_{-1}, socket_{} {
@@ -23,7 +24,7 @@ Server::Server(const std::string &hostname, uint16_t port)
     }
     if (bind(fd, addr_node->ai_addr, addr_node->ai_addrlen) == 0 &&
         listen(fd, SOMAXCONN) == 0) {
-      socket_ = *reinterpret_cast<sockaddr_in *>(addr_node->ai_addr);
+      socket_ = Sockinfo{*reinterpret_cast<sockaddr_in *>(addr_node->ai_addr)};
       fd_ = fd;
       return;
     }
@@ -57,10 +58,13 @@ Connection Server::accept() const {
 Server::Server(Server &&other) noexcept
     : fd_{other.fd_}, socket_{other.socket_} {
   other.fd_ = FD_CLOSED;
-  other.socket_ = sockaddr_in{};
+  other.socket_ = Sockinfo{};
 }
 
 Server &Server::operator=(Server &&other) noexcept {
+  // реализация через swap и rvalue-конструктор позволяет сделать
+  // noexcept-оператор присваивания без явного игнорирования исключений от
+  // close()
   Server tmp{std::move(other)};
   swap(tmp);
   return *this;
@@ -80,12 +84,13 @@ void Server::close() {
 Server::~Server() noexcept {
   try {
     close();
-  } catch (std::runtime_error &e) {
+  } catch (ServerSocketException &e) {
   }
 }
 void Server::swap(Server &other) noexcept {
   std::swap(fd_, other.fd_);
   std::swap(socket_, other.socket_);
 }
-bool Server::isOpened() const noexcept { return fd_ != FD_CLOSED; };
+bool Server::isOpened() const noexcept { return fd_ != FD_CLOSED; }
+Sockinfo Server::getServerSocketInfo() const noexcept { return socket_; };
 } // namespace tcp

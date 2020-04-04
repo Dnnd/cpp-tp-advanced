@@ -1,5 +1,6 @@
 #ifndef PROCESS_WRAPPER_INCLUDE_TCP_EXCPETIONS_HPP_
 #define PROCESS_WRAPPER_INCLUDE_TCP_EXCPETIONS_HPP_
+#include "tcp/sockinfo.hpp"
 #include <exception>
 #include <netinet/in.h>
 #include <string>
@@ -29,25 +30,25 @@ private:
 
 class SocketException : public Exception {
 public:
-  SocketException(const std::string &message, sockaddr_in local_socket,
-                  sockaddr_in remote_socket);
-  [[nodiscard]] sockaddr_in getLocal() const;
-  [[nodiscard]] sockaddr_in getRemote() const;
+  SocketException(const std::string &message, Sockinfo local_socket,
+                  Sockinfo remote_socket);
+  [[nodiscard]] Sockinfo getLocal() const;
+  [[nodiscard]] Sockinfo getRemote() const;
 
 private:
-  sockaddr_in local_;
-  sockaddr_in remote_;
+  Sockinfo local_;
+  Sockinfo remote_;
 };
 
 class ServerSocketException : public Exception {
 public:
   explicit ServerSocketException(const std::string &message,
-                                 sockaddr_in server_socket_);
+                                 Sockinfo server_socket_);
 
-  [[nodiscard]] sockaddr_in getServerSocket() const noexcept;
+  [[nodiscard]] Sockinfo getServerSocket() const noexcept;
 
 private:
-  sockaddr_in server_socket_;
+  Sockinfo server_socket_;
 };
 } // namespace tcp
 #endif // PROCESS_WRAPPER_INCLUDE_TCP_EXCPETIONS_HPP_

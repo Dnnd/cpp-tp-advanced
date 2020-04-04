@@ -32,7 +32,7 @@ void Connection::close() {
 Connection::~Connection() noexcept {
   try {
     close();
-  } catch (std::runtime_error &e) {
+  } catch (SocketException &e) {
   }
 }
 
@@ -48,8 +48,8 @@ Connection::Connection(const std::string &hostname, std::uint16_t port,
       continue;
     }
     if (::connect(fd, addr_node->ai_addr, addr_node->ai_addrlen) == 0) {
-      local_socket = get_local_sockaddr(fd);
-      remote_socket = get_remote_sockaddr(fd);
+      local_socket = Sockinfo{get_local_sockaddr(fd)};
+      remote_socket = Sockinfo{get_remote_sockaddr(fd)};
       setTimeout(fd, timeout_sec);
       fd_ = fd;
       return;
@@ -127,8 +127,8 @@ Connection::Connection(Connection &&other) noexcept
     : fd_{other.fd_}, local_socket{other.local_socket},
       remote_socket{other.remote_socket} {
   other.fd_ = -1;
-  other.local_socket = sockaddr_in{};
-  other.remote_socket = sockaddr_in{};
+  other.local_socket = Sockinfo{};
+  other.remote_socket = Sockinfo{};
 }
 
 Connection &Connection::operator=(Connection &&other) noexcept {
