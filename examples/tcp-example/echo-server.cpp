@@ -1,5 +1,4 @@
 #include "cli.hpp"
-#include <csignal>
 #include <iostream>
 #include <tcp/server.hpp>
 #include <vector>
