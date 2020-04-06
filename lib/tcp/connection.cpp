@@ -39,7 +39,7 @@ Connection::~Connection() noexcept {
 Connection::Connection(const std::string &hostname, std::uint16_t port,
                        time_t timeout_sec)
     : local_socket{}, remote_socket{}, fd_{FD_CLOSED} {
-  addrinfo_raii addrinfo_list = resolve_ipv4_tcp(hostname, port);
+  addrinfo_ptr addrinfo_list = resolve_ipv4_tcp(hostname, port);
   for (const addrinfo *addr_node = addrinfo_list.get(); addr_node != nullptr;
        addr_node = addr_node->ai_next) {
     int fd = socket(addr_node->ai_family, addr_node->ai_socktype,

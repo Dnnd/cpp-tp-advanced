@@ -2,11 +2,10 @@
 #include "netdb.h"
 #include "tcp/excpetions.hpp"
 #include <cstring>
-#include <memory>
 #include <netinet/in.h>
+
 namespace tcp {
-addrinfo_raii resolve_ipv4_tcp(const std::string &hostname,
-                               std::uint16_t port) {
+addrinfo_ptr resolve_ipv4_tcp(const std::string &hostname, std::uint16_t port) {
   addrinfo hints{};
   hints.ai_family = AF_INET;
   hints.ai_socktype = SOCK_STREAM;
@@ -17,9 +16,9 @@ addrinfo_raii resolve_ipv4_tcp(const std::string &hostname,
   if (err != 0) {
     throw Exception(std::strerror(errno));
   }
-  return std::unique_ptr<addrinfo, AddrinfoDeleter>(response,
-                                                    AddrinfoDeleter{});
+  return response;
 }
+
 sockaddr_in get_remote_sockaddr(int fd) {
   sockaddr_in sock{};
   socklen_t sockaddr_in_size = sizeof(sockaddr_in);
@@ -38,5 +37,4 @@ sockaddr_in get_local_sockaddr(int fd) {
   }
   return sock;
 }
-void AddrinfoDeleter::operator()(addrinfo *info) { freeaddrinfo(info); }
 } // namespace tcp

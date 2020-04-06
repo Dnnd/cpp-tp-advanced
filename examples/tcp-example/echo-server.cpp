@@ -9,9 +9,9 @@ int main(int argc, char **argv) {
   tcp::Connection con{server.accept()};
   std::vector<char> buff(257, '\0');
   while (server.isOpened()) {
-    int got = con.read(buff.data(), buff.size() - 1);
+    ssize_t got = con.read(buff.data(), buff.size() - 1);
     if (got == 0) {
-      con = tcp::Connection{server.accept()};
+      con = server.accept();
     }
     std::cerr << "Read: " << buff.data() << '\n';
     con.writeExact(buff.data(), got);

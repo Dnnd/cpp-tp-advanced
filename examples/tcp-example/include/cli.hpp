@@ -12,27 +12,16 @@ struct Config {
 
 Config parse_cli_opts(int argc, char *const argv[]) {
   Config parsed_config{};
-  constexpr option hostname = {.name = "hostname",
-                               .has_arg = optional_argument,
-                               .flag = nullptr,
-                               .val = 'h'};
-  constexpr option port = {.name = "port",
-                           .has_arg = optional_argument,
-                           .flag = nullptr,
-                           .val = 'p'};
-
-  constexpr option long_options[] = {hostname, port, {nullptr, 0, nullptr, 0}};
-  int option_index = 0;
   while (true) {
-    int opt = getopt_long(argc, argv, "h:p:", long_options, &option_index);
+    int opt = getopt(argc, argv, "h:p:");
     if (opt == -1) {
       break;
     }
     switch (opt) {
-    case hostname.val:
+    case 'h':
       parsed_config.hostname = optarg;
       break;
-    case port.val:
+    case 'p':
       parsed_config.port = std::strtol(optarg, nullptr, 10);
       break;
     case '?':

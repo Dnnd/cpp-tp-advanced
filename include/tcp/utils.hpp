@@ -6,13 +6,22 @@
 #include <netinet/in.h>
 
 namespace tcp {
-struct AddrinfoDeleter {
-  void operator()(addrinfo *info);
+
+template <class T, auto Deleter,
+          class Base = std::unique_ptr<T, decltype(Deleter)>>
+struct SmartPtr : Base {
+  SmartPtr() : Base(nullptr, Deleter) {}
+  SmartPtr(T *v) : Base(v, Deleter) {}
+  SmartPtr &operator=(T *v) {
+    Base::reset(v);
+    return *this;
+  }
+  operator T *() const { return Base::get(); }
 };
 
-using addrinfo_raii = std::unique_ptr<addrinfo, AddrinfoDeleter>;
+using addrinfo_ptr = SmartPtr<addrinfo, freeaddrinfo>;
 
-addrinfo_raii resolve_ipv4_tcp(const std::string &hostname, std::uint16_t port);
+addrinfo_ptr resolve_ipv4_tcp(const std::string &hostname, std::uint16_t port);
 
 sockaddr_in get_remote_sockaddr(int fd);
 
