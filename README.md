@@ -30,8 +30,8 @@ cmake --build build
 
 Использование
 ```
-build/examples/echo-client [--hostname HOST_URL] [--port PORTNAME]
-build/examples/echo-server [--hostname HOST_URL] [--port PORTNAME]
+build/examples/echo-client [-h HOST_URL] [-p PORTNAME]
+build/examples/echo-server [-h HOST_URL] [-p PORTNAME]
 ```
 
 Пример
