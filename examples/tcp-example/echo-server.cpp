@@ -9,7 +9,7 @@ int main(int argc, char **argv) {
   tcp::Connection con{server.accept()};
   std::vector<char> buff(257, '\0');
   while (server.isOpened()) {
-    ssize_t got = con.read(buff.data(), buff.size() - 1);
+    std::size_t got = con.read(buff.data(), buff.size() - 1);
     if (got == 0) {
       con = server.accept();
     }
