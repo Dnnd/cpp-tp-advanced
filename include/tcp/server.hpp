@@ -20,13 +20,13 @@ public:
 
   [[nodiscard]] bool isOpened() const noexcept;
 
-  friend Connection::Connection(int fd);
   void swap(Server &other) noexcept;
 
   [[nodiscard]] Sockinfo getServerSocketInfo() const noexcept;
 
 private:
   int fd_;
+  int epoll_fd_;
   Sockinfo socket_;
 };
 } // namespace tcp

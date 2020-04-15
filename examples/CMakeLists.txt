@@ -13,3 +13,11 @@ target_link_libraries(echo-client tcp)
 add_executable(echo-server tcp-example/echo-server.cpp)
 target_include_directories(echo-server PUBLIC tcp-example/include)
 target_link_libraries(echo-server tcp)
+
+add_executable(async-echo-server async-tcp-example/async-echo.cpp)
+target_include_directories(async-echo-server PUBLIC async-tcp-example/include)
+target_link_libraries(async-echo-server tcp)
+
+add_executable(http-example async-tcp-example/async-http-example.cpp)
+target_include_directories(http-example PUBLIC async-tcp-example/include)
+target_link_libraries(http-example tcp)

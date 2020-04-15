@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.15)
 project(process_wrapper)
 
 set(CMAKE_CXX_STANDARD 20)
-
 add_subdirectory(examples)
 set(PROCESS_SOURCES lib/process/process.cpp lib/process/descriptor.cpp lib/process/pipe.cpp)
 
@@ -25,6 +24,11 @@ set(TCP_SOURCES lib/tcp/connection.cpp
         lib/tcp/utils.cpp
         lib/tcp/server.cpp
         lib/tcp/exceptions.cpp
-        lib/tcp/sockinfo.cpp)
+        lib/tcp/sockinfo.cpp
+        lib/tcp/async_server.cpp
+        lib/tcp/epoller.cpp
+        lib/tcp/async_connection.cpp
+        lib/tcp/events.cpp
+        )
 add_library(tcp STATIC ${TCP_SOURCES})
 target_include_directories(tcp PUBLIC include)
