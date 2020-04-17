@@ -36,6 +36,7 @@ target_include_directories(tcp PUBLIC include)
 set(SHMEM_SOURCE
         lib/shmem/shared_region.cpp
         lib/shmem/shmutex.cpp
+        lib/shmem/exceptions.cpp
         include/shmem/shmallocator.hpp
         include/shmem/shmap.hpp)
 add_library(shmem STATIC ${SHMEM_SOURCE})
