@@ -21,3 +21,6 @@ target_link_libraries(async-echo-server tcp)
 add_executable(http-example async-tcp-example/async-http-example.cpp)
 target_include_directories(http-example PUBLIC async-tcp-example/include)
 target_link_libraries(http-example tcp)
+
+add_executable(shmem-example shmem-example/main.cpp)
+target_link_libraries(shmem-example shmem pthread)
