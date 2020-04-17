@@ -41,7 +41,7 @@ void Epoller::modify(int fd, EventsSet events) {
 
 void Epoller::remove(int fd) {
   if (-1 == epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, fd, nullptr)) {
-    throw EpollCtlException("unable to add event to epoll", EPOLL_CTL_MOD);
+    throw EpollCtlException("unable to remove event from epoll", EPOLL_CTL_DEL);
   }
 }
 Span<epoll_event> Epoller::wait(int timeout_musec) {
