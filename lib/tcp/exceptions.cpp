@@ -30,4 +30,12 @@ ServerSocketException::ServerSocketException(const std::string &message,
 Sockinfo ServerSocketException::getServerSocket() const noexcept {
   return server_socket_;
 }
+EpollCtlException::EpollCtlException(const std::string &message,
+                                     int epoll_ctl_op)
+    : Exception{message}, epoll_ctl_op_{epoll_ctl_op} {}
+int EpollCtlException::getEpollCtlOp() const noexcept { return epoll_ctl_op_; }
+
+InterruptedException::InterruptedException(const std::string &message)
+    : Exception{message} {}
+
 } // namespace tcp

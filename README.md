@@ -36,6 +36,30 @@ build/examples/echo-server [-h HOST_URL] [-p PORTNAME]
 
 Пример
 ```
-build/examples/echo-server --hostname localhost --port 8080
-echo "abcd" | build/examples/echo-client --hostname localhost --port 8080
+build/examples/echo-server -h localhost -p 8080
+echo "abcd" | build/examples/echo-client -h localhost -p 8080
+```
+
+## Домашнее задание 4
+```
+cmake -B ./build
+cmake --build build
+```
+
+Запуск (реализован пример эхо-сервера и http-сервера (всегда отдает 200 OK))
+```
+build/examples/async-echo-server [-h HOST_URL] [-p PORTNAME]
+build/examples/http-example [-h HOST_URL] [-p PORTNAME]
+```
+
+Пример - нагрузочное тестирование по HTTP
+```
+build/examples/http-example -h localhost -p 8080
+ab -n 100000 -c 1000 http://localhost:8080/
+```
+
+Пример - эхо с использованием `nc` в качестве клиента
+```
+build/examples/async-echo-server -h localhost -p 8080
+echo "abcd" | nc localhost 8080
 ```
