@@ -17,7 +17,7 @@ private:
 class ErrnoException : public Exception {
 public:
   ErrnoException(const std::string &message, int errno_val);
-  ;
+
   [[nodiscard]] int getErrno() const noexcept;
 
 private:

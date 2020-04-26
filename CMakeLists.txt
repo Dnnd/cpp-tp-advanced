@@ -38,7 +38,8 @@ set(SHMEM_SOURCE
         lib/shmem/shmutex.cpp
         lib/shmem/exceptions.cpp
         include/shmem/shmallocator.hpp
-        include/shmem/shmap.hpp)
+        include/shmem/shmap.hpp
+        lib/shmem/lockable_sem.cpp)
 add_library(shmem STATIC ${SHMEM_SOURCE})
 target_include_directories(shmem PUBLIC include)
 
