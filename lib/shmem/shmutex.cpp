@@ -31,7 +31,7 @@ ShMutex::~ShMutex() {
 ShMutex::ShMutex(ShMutex &&other) noexcept
     : sem_{other.sem_.unwrap()}, allocator_{other.allocator_} {}
 
-void ShMutex::swap(ShMutex &other) {
+void ShMutex::swap(ShMutex &other) noexcept {
   std::swap(sem_, other.sem_);
   std::swap(allocator_, other.allocator_);
 }

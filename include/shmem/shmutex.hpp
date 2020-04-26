@@ -23,7 +23,7 @@ public:
   ShMutex(const ShMutex &other) = delete;
   ShMutex &operator=(const ShMutex &other) = delete;
 
-  void swap(ShMutex &other);
+  void swap(ShMutex &other) noexcept;
 
   void lock();
 

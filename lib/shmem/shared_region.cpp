@@ -31,7 +31,6 @@ SharedRegion::SharedRegion(size_t n) : size_{n}, mem_{nullptr} {
       .semaphore = sem_mem,
   };
 
-
   if (-1 == sem_init(sem_mem, 1, 1)) {
     int old_errno = errno;
     // игнорируем потенциальные ошибки munmap
@@ -48,8 +47,25 @@ SharedRegionView *SharedRegion::view() {
 }
 
 SharedRegion::~SharedRegion() {
-  sem_destroy(view()->semaphore);
-  munmap(mem_, size_);
+  if (mem_ != nullptr) {
+    sem_destroy(view()->semaphore);
+    munmap(mem_, size_);
+  }
+}
+SharedRegion::SharedRegion(SharedRegion &&other) noexcept
+    : mem_{other.mem_}, size_{other.size_} {
+  other.mem_ = nullptr;
+  other.size_ = 0;
+}
+SharedRegion &SharedRegion::operator=(SharedRegion &&other) noexcept {
+  SharedRegion tmp{std::move(other)};
+  swap(tmp);
+  return *this;
+}
+
+void SharedRegion::swap(SharedRegion &other) noexcept {
+  std::swap(mem_, other.mem_);
+  std::swap(size_, other.size_);
 }
 
 } // namespace shmem
