@@ -110,7 +110,7 @@ public:
     container_alloc.deallocate(container_, 1);
   }
 
-  void swap(ShMap &other) {
+  void swap(ShMap &other) noexcept {
     mutex_.swap(other.mutex_);
     std::swap(container_, other.container_);
   }
