@@ -12,15 +12,13 @@ SharedRegion::SharedRegion(size_t n) : size_{n}, mem_{nullptr} {
   if (region_begin == MAP_FAILED) {
     throw std::bad_alloc();
   }
-  // Конструируем семафор в начале выделенной памяти
-  // ShMutex использовать нельзя, из-за цепочки зависимостей
-  // ShMutex <- ShmAllocator <- SharedRegionView
-  // SharedRegionView еще не сконструирован
 
-  // Конструируем SharedRegionView в начале SharedRegion, после семафора
+  // Конструируем следующий layout
+  // | SharedRegionView | sem_t | свободная память |
 
   auto *free_mem_begin = static_cast<char *>(region_begin) +
                          sizeof(SharedRegionView) + sizeof(sem_t);
+
   auto *sem_mem = reinterpret_cast<sem_t *>(static_cast<char *>(region_begin) +
                                             sizeof(SharedRegionView));
 
@@ -32,6 +30,7 @@ SharedRegion::SharedRegion(size_t n) : size_{n}, mem_{nullptr} {
       .end = free_mem_begin + size_,
       .semaphore = sem_mem,
   };
+
 
   if (-1 == sem_init(sem_mem, 1, 1)) {
     int old_errno = errno;
