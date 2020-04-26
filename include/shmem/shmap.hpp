@@ -16,28 +16,6 @@ public:
   using size_type = typename container_type ::size_type;
   using iterator = typename container_type ::iterator;
 
-  ShMap(const ShMap &other) : ShMap{other.get_allocator()} {
-    *container_ = *other.container_;
-  }
-
-  ShMap &operator=(const ShMap &other) {
-    if (this == &other) {
-      return *this;
-    }
-    ShMap tmp{other};
-    swap(tmp);
-    return *this;
-  }
-
-  ShMap(ShMap &&other) noexcept
-      : mutex_(std::move(other.mutex_)), container_{other.container_} {
-    other.container_ = nullptr;
-  }
-  ShMap &operator=(ShMap &&other) noexcept {
-    ShMap tmp{std::move(other)};
-    swap(tmp);
-  }
-
   explicit ShMap(allocator_type allocator)
       : mutex_{allocator}, container_{nullptr} {
     auto container_allocator = ShmAllocator<container_type>{allocator};
@@ -55,6 +33,15 @@ public:
     // деаллоцировать память
     container_ = container;
   }
+
+  // все конструкторы копирования и присванивания удалены,
+  // потому что их очень нетривиально сделать одновременно
+  // а) thread-safe б) без дедлоков в) noexcept (в случае с move)
+  ShMap(ShMap &&other) = delete;
+  ShMap(const ShMap &other) = delete;
+
+  ShMap& operator=(ShMap &&other) = delete;
+  ShMap& operator=(const ShMap &other) = delete;
 
   std::pair<iterator, bool> insert(const std::pair<const Key, Value> &pair) {
     std::lock_guard<ShMutex> lock{mutex_};
@@ -108,11 +95,6 @@ public:
     ShmAllocator<container_type> container_alloc = container_->get_allocator();
     container_alloc.destroy(container_);
     container_alloc.deallocate(container_, 1);
-  }
-
-  void swap(ShMap &other) noexcept {
-    mutex_.swap(other.mutex_);
-    std::swap(container_, other.container_);
   }
 
 private:
