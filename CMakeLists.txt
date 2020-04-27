@@ -32,3 +32,14 @@ set(TCP_SOURCES lib/tcp/connection.cpp
         )
 add_library(tcp STATIC ${TCP_SOURCES})
 target_include_directories(tcp PUBLIC include)
+
+set(SHMEM_SOURCE
+        lib/shmem/shared_region.cpp
+        lib/shmem/shmutex.cpp
+        lib/shmem/exceptions.cpp
+        include/shmem/shmallocator.hpp
+        include/shmem/shmap.hpp
+        lib/shmem/lockable_sem.cpp)
+add_library(shmem STATIC ${SHMEM_SOURCE})
+target_include_directories(shmem PUBLIC include)
+
