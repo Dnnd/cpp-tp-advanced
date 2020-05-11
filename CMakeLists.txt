@@ -43,3 +43,13 @@ set(SHMEM_SOURCE
 add_library(shmem STATIC ${SHMEM_SOURCE})
 target_include_directories(shmem PUBLIC include)
 
+set(HTTP_SOURCES
+        lib/http/http_server.cpp)
+add_library(http STATIC ${HTTP_SOURCES})
+target_include_directories(http PUBLIC include)
+target_link_libraries(http PUBLIC tcp)
+
+set(CORO_SOURCES
+        lib/coroutine/coroutine.cpp)
+add_library(coroutine STATIC ${CORO_SOURCES})
+target_include_directories(coroutine PUBLIC include/coroutine)
