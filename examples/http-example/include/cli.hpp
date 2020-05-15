@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <getopt.h>
-#include <log/level.hpp>
+#include "log/level.hpp"
 #include <optional>
 #include <string>
 
