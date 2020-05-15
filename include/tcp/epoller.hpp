@@ -1,15 +1,16 @@
 #ifndef PROCESS_WRAPPER_INCLUDE_TCP_EPOLLER_HPP_
 #define PROCESS_WRAPPER_INCLUDE_TCP_EPOLLER_HPP_
 
+#include "tcp/events.hpp"
+#include <optional>
 #include <sys/epoll.h>
 #include <vector>
-#include "tcp/events.hpp"
 namespace tcp {
 
 // В gcc < 10 нет std::span
 template <typename T> struct Span {
   T *data;
-  const std::size_t size;
+  std::size_t size;
 };
 
 class Epoller {
@@ -23,7 +24,7 @@ public:
 
   void remove(int fd);
   void modify(int fd, EventsSet events);
-  Span<epoll_event> wait(int timeout_musec);
+  std::optional<Span<epoll_event>> wait_with_timeout(int timeout_musec);
   Span<epoll_event> wait();
   void swap(Epoller &other) noexcept;
   ~Epoller() noexcept;

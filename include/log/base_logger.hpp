@@ -18,7 +18,6 @@ public:
 
 protected:
   virtual void log(const std::string &, Level) = 0;
-
 private:
   Level level_;
 };

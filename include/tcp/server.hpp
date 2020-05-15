@@ -26,7 +26,6 @@ public:
 
 private:
   int fd_;
-  int epoll_fd_;
   Sockinfo socket_;
 };
 } // namespace tcp

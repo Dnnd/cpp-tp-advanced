@@ -2,7 +2,7 @@
 #define PROCESS_WRAPPER_INCLUDE_TCP_SOCKINFO_HPP_
 #include <cstdint>
 #include <netinet/in.h>
-#include <stdint-gcc.h>
+#include <cstdint>
 
 struct Sockinfo {
   explicit Sockinfo(sockaddr_in) noexcept;
