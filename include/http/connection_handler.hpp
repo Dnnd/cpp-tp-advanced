@@ -19,7 +19,7 @@ public:
 
   std::optional<HttpRequest> readRequest();
 
-  void writeResponse(HttpResponse &response);
+  bool writeResponse(HttpResponse &response);
 
   static bool shouldCloseAfterResponse(HttpRequest &req);
 

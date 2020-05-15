@@ -35,10 +35,10 @@ struct Routine {
     func = f;
     finished = false;
     exception = {};
+    getcontext(&ctx);
     ctx.uc_stack.ss_sp = stack.get();
     ctx.uc_stack.ss_size = Ordinator::STACK_SIZE;
     ctx.uc_link = &ordinator.ctx;
-    getcontext(&ctx);
     makecontext(&ctx, entry, 0);
   }
 
@@ -83,7 +83,6 @@ bool resume(routine_t id) {
   }
 
   o.current = id;
-
   if (swapcontext(&o.ctx, &o.routines[id - 1].ctx) < 0) {
     o.current = 0;
     return false;
@@ -108,7 +107,6 @@ namespace {
 void entry() {
   auto &o = ordinator;
   routine_t id = o.current;
-
   if (o.routines[id - 1].func)
     try {
       o.routines[id - 1].func();

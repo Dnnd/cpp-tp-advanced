@@ -58,7 +58,9 @@ void HttpWorker::registerHandler(int client_fd) {
   auto handler =
       ConnectionHandler(client_fd, {Events::IN, Events::EDGE, Events::ONESHOT},
                         callback_, logger_);
-  auto coro_id = Coroutine::create(handler);
+  auto coro_id = Coroutine::create([client_fd, &coroutines = coroutines] {
+    coroutines.at(client_fd).first();
+  });
   auto &&[elem_it, ok] =
       coroutines.try_emplace(client_fd, std::move(handler), coro_id);
   resumeHandler(client_fd, coro_id, elem_it->second.first);

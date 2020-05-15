@@ -13,11 +13,13 @@ ConnectionHandler::ConnectionHandler(
       callback_(std::move(callback)), logger_{logger} {}
 
 std::optional<HttpRequest> ConnectionHandler::readRequest() {
-  HttpRequestParser parser;
+  HttpRequestParser parser{};
 
-  std::size_t read_remaining = read_buff_.size();
+  std::size_t read_idx = 0;
+
   while (true) {
-    auto ret = read(fd_, read_buff_.data(), read_remaining);
+    auto ret =
+        read(fd_, read_buff_.data() + read_idx, read_buff_.size() - read_idx);
     if (ret == -1 && errno == EAGAIN) {
       updateLastActivity();
       Coroutine::yield();
@@ -28,34 +30,42 @@ std::optional<HttpRequest> ConnectionHandler::readRequest() {
       throw ReadingException("reading failed ");
     } else if (ret == 0) {
       return {};
+    } else {
+      read_idx += ret;
     }
-    if (parser.parse(read_buff_) == HttpRequestState::DONE) {
+    if (parser.parse(std::string_view{read_buff_.data(), read_idx + 1}) ==
+        HttpRequestState::DONE) {
       break;
     }
-    read_remaining -= ret;
-    if (read_remaining == 0) {
+    if (read_idx >= read_buff_.size()) {
       read_buff_.resize(read_buff_.size() * 2);
     }
   }
   return parser.buildRequest();
 }
-void ConnectionHandler::writeResponse(HttpResponse &response) {
+
+bool ConnectionHandler::writeResponse(HttpResponse &response) {
   size_t written = 0;
   write_buff_ = response.dump();
   while (written != write_buff_.size()) {
-    auto ret = write(fd_, write_buff_.data(), write_buff_.size() - written);
+    auto ret =
+        write(fd_, write_buff_.data() + written, write_buff_.size() - written);
     if (ret == -1 && errno == EAGAIN) {
       updateLastActivity();
       Coroutine::yield();
       if (isTimeout()) {
         throw TimeoutException("timeout writeResponse");
       }
+    } else if (ret == -1 && errno == ECONNRESET) {
+      return false;
     } else if (ret == -1 || ret == 0) {
-      throw WritingException("writing failed");
+      throw WritingException(std::string("writing failed ") +
+                             std::strerror(errno));
     } else {
       written += ret;
     }
   }
+  return true;
 }
 bool ConnectionHandler::shouldCloseAfterResponse(HttpRequest &req) {
   std::optional<std::string_view> connection = req.getHeader("Connection");
@@ -87,7 +97,10 @@ void ConnectionHandler::operator()() {
 
       set_.sub(Events::IN);
       set_.add(Events::OUT);
-      writeResponse(response);
+
+      if (!writeResponse(response)) {
+        return;
+      }
 
       if (shouldClose) {
         return;
@@ -102,6 +115,7 @@ void ConnectionHandler::operator()() {
       set_.sub(Events::IN);
       set_.add(Events::OUT);
       writeResponse(HttpResponse().setStatusCode(e.getCode()));
+      return;
     }
   }
 }

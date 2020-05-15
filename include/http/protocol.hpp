@@ -135,14 +135,24 @@ enum class HttpMethod : uint8_t { GET, POST, PUT, DELETE };
 std::ostream &operator<<(std::ostream &os, const HttpMethod &version);
 
 struct CaseInsensitiveComparator {
-  bool operator()(const std::string_view &left,
-                  const std::string_view &right) const noexcept;
+  bool operator()(const std::string &left,
+                  const std::string &right) const noexcept;
+};
+
+struct CaseInsensitiveHash {
+  int operator()(const std::string &s) const {
+    std::string tmp{s};
+    std::transform(s.begin(), s.end(), tmp.begin(),
+                   [](auto in) { return std::tolower(in); });
+    return std::hash<std::string>()(tmp);
+  }
 };
 
 using Headers =
-    std::unordered_map<std::string, std::string, std::hash<std::string_view>,
+    std::unordered_map<std::string, std::string, CaseInsensitiveHash,
                        CaseInsensitiveComparator>;
+
 using QueryParameters =
-    std::unordered_map<std::string, std::string, std::hash<std::string_view>,
+    std::unordered_map<std::string, std::string, CaseInsensitiveHash,
                        CaseInsensitiveComparator>;
 #endif // PROCESS_WRAPPER_INCLUDE_HTTP_PROTOCOL_HPP_

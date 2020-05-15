@@ -103,4 +103,8 @@ void HttpServer::enableGracefulShutdown() {
   sigemptyset(&sigIntHandler.sa_mask);
   sigIntHandler.sa_flags = 0;
   sigaction(SIGTERM, &sigIntHandler, NULL);
+  struct sigaction ignore_sigpipe {
+    SIG_IGN
+  };
+  sigaction(SIGPIPE, &ignore_sigpipe, NULL);
 }

@@ -2,14 +2,14 @@
 
 std::ostream &operator<<(std::ostream &os, const HttpVersion &version) {
   switch (version) {
-	case HttpVersion::HTTP1_0:
-	  os << "HTTP/1.0";
-	  return os;
-	case HttpVersion::HTTP1_1:
-	  os << "HTTP/1.1";
-	  return os;
-	default:
-	  return os;
+  case HttpVersion::HTTP1_0:
+    os << "HTTP/1.0";
+    return os;
+  case HttpVersion::HTTP1_1:
+    os << "HTTP/1.1";
+    return os;
+  default:
+    return os;
   }
 }
 std::ostream &operator<<(std::ostream &os, const HttpMethod &version) {
@@ -31,11 +31,6 @@ std::ostream &operator<<(std::ostream &os, const HttpMethod &version) {
   }
 }
 bool CaseInsensitiveComparator::operator()(
-    const std::string_view &left,
-    const std::string_view &right) const noexcept {
-  if (left.size() < right.size()) {
-    return strncasecmp(left.data(), right.data(), left.size()) == 0;
-  } else {
-    return strncasecmp(right.data(), left.data(), right.size()) == 0;
-  }
+    const std::string &left, const std::string &right) const noexcept {
+  return strcasecmp(left.c_str(), right.c_str()) == 0;
 }
