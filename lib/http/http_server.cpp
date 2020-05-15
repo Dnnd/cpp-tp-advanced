@@ -80,8 +80,8 @@ void HttpServer::acceptClients() {
           continue;
         }
         if (clientfd == -1) {
-          throw std::runtime_error("unable to accept connection: "s +
-                                   std::strerror(errno));
+          logger_->error("unable to accept connection");
+          continue;
         }
 
         pollers_pool_[balance_idx++].add(
