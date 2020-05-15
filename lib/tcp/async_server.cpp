@@ -97,7 +97,7 @@ Sockinfo AsyncServer::getServerSocketInfo() const noexcept { return socket_; }
 void AsyncServer::accept() {
   poller_.add(fd_, {Events::IN});
   while (isOpened()) {
-    Span<epoll_event> events = poller_.wait(timeout_);
+    Span<epoll_event> events = poller_.wait();
     for (epoll_event *event = events.data; event != events.data + events.size;
          ++event) {
       if (event->data.fd == fd_) {
