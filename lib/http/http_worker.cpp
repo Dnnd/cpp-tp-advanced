@@ -1,5 +1,6 @@
 #include "http/http_worker.hpp"
 #include "log/base_logger.hpp"
+#include <iostream>
 using namespace std::string_literals;
 namespace {
 constexpr int TIMER_TICK{250};
@@ -45,7 +46,7 @@ void HttpWorker::scheduleTimeoutHandler(
   for (auto it = coroutines.begin(); it != coroutines.end();) {
     auto &&[fd, handler] = *it;
     auto &&[context, coroutine_id] = handler;
-    if (context.getLastActivity() - now >= timeout_threshold_) {
+    if ( now - context.getLastActivity() >= timeout_threshold_) {
       context.setTimeout();
       try {
         Coroutine::resume(coroutine_id);

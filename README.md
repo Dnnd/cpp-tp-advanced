@@ -69,3 +69,10 @@ echo "abcd" | nc localhost 8080
 ```
 build/examples/shmem-example
 ```
+
+## Домашнее задание 6
+```
+cmake -B ./build
+cmake —build build
+build/examples/http-server-example  [-h HOST_URL] [-p PORTNAME] [-d | -i | -e | -w] [-l LOGFILE]
+```
