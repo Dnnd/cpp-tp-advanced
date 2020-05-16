@@ -1,6 +1,6 @@
 #include "http/http_worker.hpp"
 #include "log/base_logger.hpp"
-
+using namespace std::string_literals;
 namespace {
 constexpr int TIMER_TICK{250};
 }
@@ -47,7 +47,12 @@ void HttpWorker::scheduleTimeoutHandler(
     auto &&[context, coroutine_id] = handler;
     if (context.getLastActivity() - now >= timeout_threshold_) {
       context.setTimeout();
-      Coroutine::resume(coroutine_id);
+      try {
+        Coroutine::resume(coroutine_id);
+      } catch (std::exception &e) {
+        logger_.error("coroutine throwed exception on closing :"s + e.what());
+      }
+      close(it->first);
       it = coroutines.erase(it);
     } else {
       ++it;
@@ -58,13 +63,14 @@ void HttpWorker::registerHandler(int client_fd) {
   auto handler =
       ConnectionHandler(client_fd, {Events::IN, Events::EDGE, Events::ONESHOT},
                         callback_, logger_);
-  auto coro_id = Coroutine::create([client_fd, &coroutines = coroutines] {
-    coroutines.at(client_fd).first();
-  });
+
   auto &&[elem_it, ok] =
-      coroutines.try_emplace(client_fd, std::move(handler), coro_id);
-  resumeHandler(client_fd, coro_id, elem_it->second.first);
+      coroutines.try_emplace(client_fd, std::move(handler), 0);
+  auto &&[moved_handler, coroutine_id] = elem_it->second;
+  coroutine_id = Coroutine::create([&h = moved_handler] { h(); });
+  resumeHandler(client_fd, coroutine_id, moved_handler);
 }
+
 void HttpWorker::resumeHandler(int client_fd, Coroutine::routine_t coro_id,
                                ConnectionHandler &handler) {
   try {
