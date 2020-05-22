@@ -4,22 +4,18 @@
 #include "tcp/sockinfo.hpp"
 #include "tcp/utils.hpp"
 #include <forward_list>
+#include <iostream>
+#include <netinet/tcp.h>
 #include <string>
 #include <unistd.h>
 using namespace std::string_literals;
-namespace {
-constexpr size_t EVENTS_PER_POLLER = 1024;
-
-}
-
-std::atomic_bool HttpServer::closed_{false};
 
 HttpServer::HttpServer(const std::string &hostname, uint16_t port,
                        size_t thread_pool_size,
                        std::chrono::milliseconds timeout,
                        std::unique_ptr<log::BaseLogger> logger)
-    : accept_poller_(1), thread_pool_size_{thread_pool_size}, timeout_{timeout},
-      logger_{std::move(logger)} {
+    : thread_pool_size_{thread_pool_size}, timeout_{timeout}, logger_{std::move(
+                                                                  logger)} {
   tcp::addrinfo_ptr addrinfo_list = tcp::resolve_ipv4_tcp(hostname, port);
   for (const addrinfo *addr_node = addrinfo_list.get(); addr_node != nullptr;
        addr_node = addr_node->ai_next) {
@@ -40,69 +36,25 @@ HttpServer::HttpServer(const std::string &hostname, uint16_t port,
   }
   throw std::runtime_error("unable to bind to addr\n");
 }
-void HttpServer::run() {
+void HttpServer::run(bool enable_graceful_shutdown = true) {
 
   // не vector, т.к. HttpWorker - не copyable и не movable
+  std::atomic_flag flag;
   std::forward_list<HttpWorker> thread_pool_;
-  accept_poller_.add(fd_, {Events::IN});
-
-  for (int i = 0; i < thread_pool_size_; ++i) {
-    pollers_pool_.emplace_back(EVENTS_PER_POLLER);
-  }
-
   for (int i = 0; i < thread_pool_size_; ++i) {
     thread_pool_.emplace_front(
-        pollers_pool_[i], timeout_,
+        closed_, fd_, timeout_,
         [this](HttpRequest &request) { return serveRequest(request); },
         *logger_);
   }
-
-  acceptClients();
-  accept_poller_.remove(fd_);
-}
-void HttpServer::acceptClients() {
-  unsigned balance_idx = 0;
-  while (!closed_) {
-    try {
-      accept_poller_.wait();
-      while (true) {
-        sockaddr_in client_sock{};
-        socklen_t sock_size = sizeof(client_sock);
-        int clientfd =
-            ::accept4(fd_, reinterpret_cast<sockaddr *>(&client_sock),
-                      &sock_size, SOCK_NONBLOCK);
-        if (clientfd == -1 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
-          break;
-        }
-        if (clientfd == -1 &&
-            (errno == ECONNABORTED || errno == EINTR || errno == EPERM)) {
-          continue;
-        }
-        if (clientfd == -1) {
-          logger_->error("unable to accept connection");
-          continue;
-        }
-
-        pollers_pool_[balance_idx++].add(clientfd, {Events::IN});
-
-        balance_idx %= pollers_pool_.size();
-      }
-    } catch (tcp::InterruptedException &ex) {
-      continue;
-    }
+  if (enable_graceful_shutdown) {
+    sigset_t signals_;
+    sigaddset(&signals_, SIGTERM);
+    sigaddset(&signals_, SIGINT);
+    int got = 0;
+    sigwait(&signals_, &got);
+    closed_.store(false);
   }
 }
-void HttpServer::stop() { closed_.store(true); }
-HttpServer::~HttpServer() noexcept { close(fd_); }
 
-void HttpServer::enableGracefulShutdown() {
-  struct sigaction sigIntHandler {};
-  sigIntHandler.sa_sigaction = &HttpServer::_stop;
-  sigemptyset(&sigIntHandler.sa_mask);
-  sigIntHandler.sa_flags = 0;
-  sigaction(SIGTERM, &sigIntHandler, NULL);
-  struct sigaction ignore_sigpipe {
-    SIG_IGN
-  };
-  sigaction(SIGPIPE, &ignore_sigpipe, NULL);
-}
+HttpServer::~HttpServer() noexcept { close(fd_); }

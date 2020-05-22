@@ -146,3 +146,32 @@ bool ConnectionHandler::resumeHandler() {
 void ConnectionHandler::registerCoroutine() {
   routine_id_ = Coroutine::create(std::ref(*this));
 }
+ConnectionHandler::ConnectionHandler(ConnectionHandler &&other) noexcept
+    : fd_{other.fd_}, last_activity_{other.last_activity_},
+      read_buff_{std::move(other.read_buff_)}, logger_{other.logger_},
+      write_buff_{std::move(other.write_buff_)}, callback_{other.callback_},
+      routine_id_{other.routine_id_}, set_{other.set_} {
+  other.routine_id_ = NO_COROUTINE;
+  other.fd_ = -1;
+}
+ConnectionHandler::~ConnectionHandler() {
+  if (fd_ != -1) {
+    close(fd_);
+    fd_ = -1;
+  }
+}
+ConnectionHandler &
+ConnectionHandler::operator=(ConnectionHandler &&other) noexcept {
+  fd_ = other.fd_;
+  last_activity_ = other.last_activity_;
+  logger_ = other.logger_;
+  write_buff_ = std::move(other.write_buff_);
+  read_buff_ = std::move(other.read_buff_);
+  callback_ = std::move(other.callback_);
+  routine_id_ = other.routine_id_;
+  set_ = other.set_;
+
+  other.routine_id_ = NO_COROUTINE;
+  other.fd_ = -1;
+  return *this;
+}

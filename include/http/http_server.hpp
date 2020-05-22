@@ -18,22 +18,13 @@ public:
 
   virtual HttpResponse serveRequest(HttpRequest &request) = 0;
 
-  void run();
-
-  void acceptClients();
-
-  static void stop();
-
-  static void enableGracefulShutdown();
+  void run(bool enable_graceful_shutdown);
 
   virtual ~HttpServer() noexcept;
 
 private:
-  static void _stop(int sig, siginfo_t *siginfo, void *context) { stop(); }
-  tcp::Epoller accept_poller_;
   int fd_;
-  static std::atomic_bool closed_;
-  std::vector<tcp::Epoller> pollers_pool_;
+  std::atomic_bool closed_;
   std::chrono::milliseconds timeout_;
   size_t thread_pool_size_;
   std::unique_ptr<log::BaseLogger> logger_;

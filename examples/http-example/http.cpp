@@ -25,7 +25,6 @@ public:
 
 int main(int argc, char **argv) {
   Config cfg = parse_cli_opts(argc, argv);
-  HttpServer::enableGracefulShutdown();
   std::unique_ptr<log::BaseLogger> logger;
   if (cfg.logfile) {
     logger = std::make_unique<log::ThreadSafeFileLogger>(cfg.logfile.value());
@@ -35,5 +34,5 @@ int main(int argc, char **argv) {
   logger->set_level(cfg.log_level);
   auto echo_server = std::make_unique<HttpEchoServer>(
       cfg.hostname, cfg.port, cfg.concurrency, cfg.timeout, std::move(logger));
-  echo_server->run();
+  echo_server->run(true);
 }

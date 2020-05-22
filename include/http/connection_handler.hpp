@@ -17,6 +17,12 @@ public:
                     std::function<HttpResponse(HttpRequest &)> callback,
                     log::BaseLogger &logger);
 
+  ConnectionHandler(const ConnectionHandler &other) = delete;
+  ConnectionHandler &operator=(const ConnectionHandler &other) = delete;
+
+  ConnectionHandler(ConnectionHandler &&other) noexcept;
+  ConnectionHandler &operator=(ConnectionHandler &&other) noexcept;
+
   std::optional<HttpRequest> readRequest();
 
   bool writeResponse(HttpResponse &response);
@@ -41,12 +47,12 @@ public:
   void registerCoroutine();
   bool resumeHandler();
 
-  ~ConnectionHandler() = default;
+  ~ConnectionHandler();
 
 private:
   std::chrono::time_point<std::chrono::steady_clock> last_activity_;
   bool timeout_ = false;
-  EventsSet set_;
+  EventsSet set_{};
   std::string read_buff_;
   std::string write_buff_;
   int fd_;

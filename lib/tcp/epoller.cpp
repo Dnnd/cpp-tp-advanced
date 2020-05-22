@@ -46,6 +46,7 @@ void Epoller::remove(int fd) {
     throw EpollCtlException("unable to remove event from epoll", EPOLL_CTL_DEL);
   }
 }
+
 std::optional<Span<epoll_event>> Epoller::wait_with_timeout(int timeout_musec) {
   int triggered =
       epoll_wait(epoll_fd_, events_.data(), events_.size(), timeout_musec);

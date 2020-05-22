@@ -13,8 +13,8 @@
 
 class HttpWorker {
 public:
-
-  HttpWorker(tcp::Epoller &epoller, std::chrono::milliseconds timeout_threshold,
+  HttpWorker(const std::atomic_bool &stop, int server_fd,
+             std::chrono::milliseconds timeout_threshold,
              std::function<HttpResponse(HttpRequest &)> callback,
              log::BaseLogger &logger);
 
@@ -35,12 +35,15 @@ private:
 
   void handleEvents(tcp::Span<epoll_event> events);
 
+  void registerClients();
+
   log::BaseLogger &logger_;
   std::function<HttpResponse(HttpRequest &)> callback_;
   std::chrono::milliseconds timeout_threshold_;
-  std::atomic<bool> stop_{false};
-  tcp::Epoller &epoller_;
+  const std::atomic_bool &stop_;
+  tcp::Epoller epoller_;
   std::unordered_map<int, ConnectionHandler> coroutines;
   std::thread thread_;
+  int server_fd_;
 };
 #endif // PROCESS_WRAPPER_INCLUDE_HTTP_HTTP_WORKER_HPP_
