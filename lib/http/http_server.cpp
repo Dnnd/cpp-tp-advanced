@@ -1,7 +1,6 @@
 #include "http/http_server.hpp"
 #include "http/http_worker.hpp"
 #include "http/utils.hpp"
-#include "tcp/sockinfo.hpp"
 #include "tcp/utils.hpp"
 #include <forward_list>
 #include <iostream>
@@ -14,8 +13,8 @@ HttpServer::HttpServer(const std::string &hostname, uint16_t port,
                        size_t thread_pool_size,
                        std::chrono::milliseconds timeout,
                        std::unique_ptr<log::BaseLogger> logger)
-    : thread_pool_size_{thread_pool_size}, timeout_{timeout}, logger_{std::move(
-                                                                  logger)} {
+    : thread_pool_size_{thread_pool_size}, timeout_{timeout},
+      logger_{std::move(logger)}, closed_{false} {
   tcp::addrinfo_ptr addrinfo_list = tcp::resolve_ipv4_tcp(hostname, port);
   for (const addrinfo *addr_node = addrinfo_list.get(); addr_node != nullptr;
        addr_node = addr_node->ai_next) {
@@ -36,10 +35,9 @@ HttpServer::HttpServer(const std::string &hostname, uint16_t port,
   }
   throw std::runtime_error("unable to bind to addr\n");
 }
-void HttpServer::run(bool enable_graceful_shutdown = true) {
+void HttpServer::run(bool enable_graceful_shutdown) {
 
   // не vector, т.к. HttpWorker - не copyable и не movable
-  std::atomic_flag flag;
   std::forward_list<HttpWorker> thread_pool_;
   for (int i = 0; i < thread_pool_size_; ++i) {
     thread_pool_.emplace_front(
@@ -53,7 +51,7 @@ void HttpServer::run(bool enable_graceful_shutdown = true) {
     sigaddset(&signals_, SIGINT);
     int got = 0;
     sigwait(&signals_, &got);
-    closed_.store(false);
+    closed_.store(true);
   }
 }
 

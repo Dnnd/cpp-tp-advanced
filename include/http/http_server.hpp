@@ -18,7 +18,7 @@ public:
 
   virtual HttpResponse serveRequest(HttpRequest &request) = 0;
 
-  void run(bool enable_graceful_shutdown);
+  void run(bool enable_graceful_shutdown = true);
 
   virtual ~HttpServer() noexcept;
 

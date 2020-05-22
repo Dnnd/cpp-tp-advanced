@@ -34,5 +34,5 @@ int main(int argc, char **argv) {
   logger->set_level(cfg.log_level);
   auto echo_server = std::make_unique<HttpEchoServer>(
       cfg.hostname, cfg.port, cfg.concurrency, cfg.timeout, std::move(logger));
-  echo_server->run(true);
+  echo_server->run();
 }

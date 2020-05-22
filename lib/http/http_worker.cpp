@@ -7,7 +7,7 @@ constexpr int TIMER_TICK{250};
 constexpr int DEFAULT_EVENTS_SIZE = 1024;
 } // namespace
 
-HttpWorker::HttpWorker(const std::atomic_bool &stop, int server_fd,
+HttpWorker::HttpWorker(std::atomic_bool &stop, int server_fd,
                        std::chrono::milliseconds timeout_threshold,
                        std::function<HttpResponse(HttpRequest &)> callback,
                        log::BaseLogger &logger)
@@ -43,6 +43,14 @@ void HttpWorker::run_events_loop() {
       scheduleTimeoutHandler(now);
       time_passed = std::chrono::milliseconds(0);
     }
+  }
+  try {
+    for (auto &&[client_fd, handler] : coroutines) {
+      handler.setTimeout();
+      handler.resumeHandler();
+    }
+  } catch (std::exception &e) {
+    logger_.error("error on handler termination: "s + e.what());
   }
 }
 
@@ -109,10 +117,6 @@ void HttpWorker::handleEvents(tcp::Span<epoll_event> events) {
 }
 HttpWorker::~HttpWorker() noexcept {
   try {
-    for (auto &&[client_fd, handler] : coroutines) {
-      handler.setTimeout();
-      handler.resumeHandler();
-    }
     if (thread_.joinable()) {
       thread_.join();
     }

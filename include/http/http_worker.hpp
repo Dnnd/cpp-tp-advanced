@@ -13,7 +13,7 @@
 
 class HttpWorker {
 public:
-  HttpWorker(const std::atomic_bool &stop, int server_fd,
+  HttpWorker(std::atomic_bool &stop, int server_fd,
              std::chrono::milliseconds timeout_threshold,
              std::function<HttpResponse(HttpRequest &)> callback,
              log::BaseLogger &logger);
@@ -40,7 +40,7 @@ private:
   log::BaseLogger &logger_;
   std::function<HttpResponse(HttpRequest &)> callback_;
   std::chrono::milliseconds timeout_threshold_;
-  const std::atomic_bool &stop_;
+  std::atomic_bool &stop_;
   tcp::Epoller epoller_;
   std::unordered_map<int, ConnectionHandler> coroutines;
   std::thread thread_;
