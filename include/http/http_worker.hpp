@@ -13,7 +13,6 @@
 
 class HttpWorker {
 public:
-  using Handler = std::pair<ConnectionHandler, Coroutine::routine_t>;
 
   HttpWorker(tcp::Epoller &epoller, std::chrono::milliseconds timeout_threshold,
              std::function<HttpResponse(HttpRequest &)> callback,
