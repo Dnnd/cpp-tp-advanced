@@ -34,6 +34,7 @@ public:
   [[nodiscard]] bool empty() const noexcept;
 
   friend bool operator==(EventsSet lhs, EventsSet rhs);
+  friend bool operator!=(EventsSet lhs, EventsSet rhs);
 
 private:
   uint32_t events_;

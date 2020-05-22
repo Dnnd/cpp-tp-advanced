@@ -3,14 +3,16 @@
 
 namespace {
 constexpr size_t initial_buffer_size = 1024;
-}
+constexpr Coroutine::routine_t NO_COROUTINE = -1;
+} // namespace
 
 ConnectionHandler::ConnectionHandler(
     int f, EventsSet set, std::function<HttpResponse(HttpRequest &)> callback,
     log::BaseLogger &logger)
     : read_buff_(initial_buffer_size, '\0'), write_buff_(), fd_{f}, set_{set},
       last_activity_{std::chrono::milliseconds(0)},
-      callback_(std::move(callback)), logger_{logger} {}
+      callback_(std::move(callback)), logger_{logger}, routine_id_{
+                                                           NO_COROUTINE} {}
 
 std::optional<HttpRequest> ConnectionHandler::readRequest() {
   HttpRequestParser parser{};
@@ -132,4 +134,15 @@ void ConnectionHandler::updateLastActivity() noexcept {
 std::chrono::time_point<std::chrono::steady_clock>
 ConnectionHandler::getLastActivity() const noexcept {
   return last_activity_;
+}
+
+bool ConnectionHandler::resumeHandler() {
+  if (routine_id_ != NO_COROUTINE) {
+    return Coroutine::resume(routine_id_);
+  }
+  return true;
+}
+
+void ConnectionHandler::registerCoroutine() {
+  routine_id_ = Coroutine::create(std::ref(*this));
 }

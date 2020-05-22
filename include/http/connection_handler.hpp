@@ -38,6 +38,9 @@ public:
   [[nodiscard]] std::chrono::time_point<std::chrono::steady_clock>
   getLastActivity() const noexcept;
 
+  void registerCoroutine();
+  bool resumeHandler();
+
   ~ConnectionHandler() = default;
 
 private:
@@ -49,5 +52,6 @@ private:
   int fd_;
   log::BaseLogger &logger_;
   std::function<HttpResponse(HttpRequest &)> callback_;
+  Coroutine::routine_t routine_id_;
 };
 #endif // PROCESS_WRAPPER_INCLUDE_HTTP_CONNECTION_HANDLER_HPP_

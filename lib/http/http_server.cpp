@@ -3,6 +3,7 @@
 #include "http/utils.hpp"
 #include "tcp/sockinfo.hpp"
 #include "tcp/utils.hpp"
+#include <forward_list>
 #include <string>
 #include <unistd.h>
 using namespace std::string_literals;
@@ -40,25 +41,23 @@ HttpServer::HttpServer(const std::string &hostname, uint16_t port,
   throw std::runtime_error("unable to bind to addr\n");
 }
 void HttpServer::run() {
-  std::vector<JThread> thread_pool_;
-  thread_pool_.reserve(thread_pool_size_);
-  accept_poller_.add(fd_, {Events::IN, Events::EXCLUSIVE});
+
+  // не vector, т.к. HttpWorker - не copyable и не movable
+  std::forward_list<HttpWorker> thread_pool_;
+  accept_poller_.add(fd_, {Events::IN});
 
   for (int i = 0; i < thread_pool_size_; ++i) {
     pollers_pool_.emplace_back(EVENTS_PER_POLLER);
   }
 
   for (int i = 0; i < thread_pool_size_; ++i) {
-    thread_pool_.emplace_back(std::thread([&poller = pollers_pool_[i], this] {
-      HttpWorker{poller, std::chrono::milliseconds(timeout_),
-                 [this](HttpRequest &request) { return serveRequest(request); },
-                 *logger_}();
-    }));
+    thread_pool_.emplace_front(
+        pollers_pool_[i], timeout_,
+        [this](HttpRequest &request) { return serveRequest(request); },
+        *logger_);
   }
 
   acceptClients();
-
-  thread_pool_.clear();
   accept_poller_.remove(fd_);
 }
 void HttpServer::acceptClients() {
@@ -84,8 +83,7 @@ void HttpServer::acceptClients() {
           continue;
         }
 
-        pollers_pool_[balance_idx++].add(
-            clientfd, {Events::IN, Events::EDGE, Events::ONESHOT});
+        pollers_pool_[balance_idx++].add(clientfd, {Events::IN});
 
         balance_idx %= pollers_pool_.size();
       }

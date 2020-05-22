@@ -1,6 +1,6 @@
 #include "http/http_worker.hpp"
 #include "log/base_logger.hpp"
-#include <iostream>
+#include <http/utils.hpp>
 using namespace std::string_literals;
 namespace {
 constexpr int TIMER_TICK{250};
@@ -11,11 +11,12 @@ HttpWorker::HttpWorker(tcp::Epoller &epoller,
                        std::function<HttpResponse(HttpRequest &)> callback,
                        log::BaseLogger &logger)
     : callback_{std::move(callback)}, epoller_{epoller},
-      timeout_threshold_{timeout_threshold}, logger_{logger} {}
-void HttpWorker::operator()() {
+      timeout_threshold_{timeout_threshold}, logger_{logger}, thread_{} {
+  thread_ = std::thread{[this] { run_events_loop(); }};
+}
 
+void HttpWorker::run_events_loop() {
   std::chrono::milliseconds time_passed;
-
   while (!stop_) {
     tcp::Span<epoll_event> events{};
 
@@ -41,15 +42,15 @@ void HttpWorker::operator()() {
     }
   }
 }
+
 void HttpWorker::scheduleTimeoutHandler(
     std::chrono::time_point<std::chrono::steady_clock> now) {
   for (auto it = coroutines.begin(); it != coroutines.end();) {
     auto &&[fd, handler] = *it;
-    auto &&[context, coroutine_id] = handler;
-    if ( now - context.getLastActivity() >= timeout_threshold_) {
-      context.setTimeout();
+    if (now - handler.getLastActivity() >= timeout_threshold_) {
+      handler.setTimeout();
       try {
-        Coroutine::resume(coroutine_id);
+        handler.resumeHandler();
       } catch (std::exception &e) {
         logger_.error("coroutine throwed exception on closing :"s + e.what());
       }
@@ -61,24 +62,21 @@ void HttpWorker::scheduleTimeoutHandler(
   }
 }
 void HttpWorker::registerHandler(int client_fd) {
-  auto handler =
-      ConnectionHandler(client_fd, {Events::IN, Events::EDGE, Events::ONESHOT},
-                        callback_, logger_);
+  auto handler = ConnectionHandler(client_fd, {Events::IN}, callback_, logger_);
 
-  auto &&[elem_it, ok] =
-      coroutines.try_emplace(client_fd, std::move(handler), 0);
-  auto &&[moved_handler, coroutine_id] = elem_it->second;
-  coroutine_id = Coroutine::create([&h = moved_handler] { h(); });
-  resumeHandler(client_fd, coroutine_id, moved_handler);
+  auto &&[elem_it, ok] = coroutines.emplace(client_fd, std::move(handler));
+  auto &inserted_handler = elem_it->second;
+  inserted_handler.registerCoroutine();
+  resumeHandler(client_fd, inserted_handler);
 }
 
-void HttpWorker::resumeHandler(int client_fd, Coroutine::routine_t coro_id,
-                               ConnectionHandler &handler) {
+void HttpWorker::resumeHandler(int client_fd, ConnectionHandler &handler) {
   try {
-    if (!Coroutine::resume(coro_id)) {
+    EventsSet events_before = handler.getEventsSet();
+    if (!handler.resumeHandler()) {
       close(client_fd);
       coroutines.erase(client_fd);
-    } else {
+    } else if (events_before != handler.getEventsSet()) {
       epoller_.modify(client_fd, handler.getEventsSet());
     }
   } catch (tcp::Exception &e) {
@@ -100,8 +98,16 @@ void HttpWorker::handleEvents(tcp::Span<epoll_event> events) {
     if (it == coroutines.end()) {
       registerHandler(client_fd);
     } else {
-      auto &&[conn_handler, coro_id] = it->second;
-      resumeHandler(client_fd, coro_id, conn_handler);
+      auto &conn_handler = it->second;
+      resumeHandler(client_fd, conn_handler);
     }
+  }
+}
+HttpWorker::~HttpWorker() noexcept {
+  try {
+    if (thread_.joinable()) {
+      thread_.join();
+    }
+  } catch (std::system_error &e) {
   }
 }

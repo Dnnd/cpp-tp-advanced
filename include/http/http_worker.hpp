@@ -9,6 +9,7 @@
 #include "tcp/epoller.hpp"
 #include "unistd.h"
 #include <atomic>
+#include <thread>
 
 class HttpWorker {
 public:
@@ -18,24 +19,29 @@ public:
              std::function<HttpResponse(HttpRequest &)> callback,
              log::BaseLogger &logger);
 
-  void operator()();
+  HttpWorker(const HttpWorker &other) = delete;
+  HttpWorker(HttpWorker &&other) = delete;
+  HttpWorker &operator=(HttpWorker &&other) noexcept = delete;
+  HttpWorker &operator=(const HttpWorker &other) noexcept = delete;
+  ~HttpWorker() noexcept;
 
+private:
+  void run_events_loop();
   void scheduleTimeoutHandler(
       std::chrono::time_point<std::chrono::steady_clock> now);
 
   void registerHandler(int client_fd);
 
-  void resumeHandler(int client_fd, Coroutine::routine_t coro_id,
-                     ConnectionHandler &handler);
+  void resumeHandler(int client_fd, ConnectionHandler &handler);
 
   void handleEvents(tcp::Span<epoll_event> events);
 
-private:
   log::BaseLogger &logger_;
   std::function<HttpResponse(HttpRequest &)> callback_;
   std::chrono::milliseconds timeout_threshold_;
   std::atomic<bool> stop_{false};
   tcp::Epoller &epoller_;
-  std::unordered_map<int, Handler> coroutines;
+  std::unordered_map<int, ConnectionHandler> coroutines;
+  std::thread thread_;
 };
 #endif // PROCESS_WRAPPER_INCLUDE_HTTP_HTTP_WORKER_HPP_
