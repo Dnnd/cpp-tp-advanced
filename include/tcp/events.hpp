@@ -1,16 +1,20 @@
 #ifndef PROCESS_WRAPPER_LIB_TCP_EVENTS_HPP_
 #define PROCESS_WRAPPER_LIB_TCP_EVENTS_HPP_
 
+#include <cstdint>
 #include <sys/epoll.h>
 #include <utility>
 
-enum class Events {
+enum class Events : uint32_t {
   IN = EPOLLIN,
   OUT = EPOLLOUT,
   ERR = EPOLLERR,
   PRI = EPOLLPRI,
   HUP = EPOLLHUP,
   RDHUP = EPOLLRDHUP,
+  EXCLUSIVE = EPOLLEXCLUSIVE,
+  EDGE = EPOLLET,
+  ONESHOT = EPOLLONESHOT,
 };
 
 class EventsSet {
@@ -30,6 +34,7 @@ public:
   [[nodiscard]] bool empty() const noexcept;
 
   friend bool operator==(EventsSet lhs, EventsSet rhs);
+  friend bool operator!=(EventsSet lhs, EventsSet rhs);
 
 private:
   uint32_t events_;

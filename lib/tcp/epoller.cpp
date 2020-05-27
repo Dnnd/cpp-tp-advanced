@@ -1,6 +1,8 @@
 #include "tcp/epoller.hpp"
 #include "tcp/excpetions.hpp"
 #include <cstring>
+#include <iostream>
+#include <optional>
 #include <unistd.h>
 
 namespace tcp {
@@ -44,19 +46,34 @@ void Epoller::remove(int fd) {
     throw EpollCtlException("unable to remove event from epoll", EPOLL_CTL_DEL);
   }
 }
-Span<epoll_event> Epoller::wait(int timeout_musec) {
+
+std::optional<Span<epoll_event>> Epoller::wait_with_timeout(int timeout_musec) {
   int triggered =
       epoll_wait(epoll_fd_, events_.data(), events_.size(), timeout_musec);
-  if (triggered == -1 && errno == EINTR) {
-    throw InterruptedException(std::strerror(errno));
+  if (triggered == 0) {
+    return std::nullopt;
+  } else if (triggered == -1 && errno == EINTR) {
+    throw InterruptedException("epoll_wait was interrupted");
   }
   if (triggered == -1) {
-    throw Exception("failed on epoll_wait call");
+    throw tcp::Exception(std::string("fail on epoll_wait ") +
+                         std::strerror(errno));
   }
-  return {.data = events_.data(), .size = static_cast<size_t>(triggered)};
+  return Span<epoll_event>{.data = events_.data(),
+                           .size = static_cast<size_t>(triggered)};
 }
 
-Span<epoll_event> Epoller::wait() { return wait(-1); }
+Span<epoll_event> Epoller::wait() {
+  while (true) {
+    auto events = wait_with_timeout(-1);
+    if (!events.has_value()) {
+      continue;
+    } else {
+      return events.value();
+    }
+  }
+}
+
 void Epoller::swap(Epoller &other) noexcept {
   std::swap(epoll_fd_, other.epoll_fd_);
   events_.swap(other.events_);

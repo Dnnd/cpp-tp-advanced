@@ -27,3 +27,4 @@ bool EventsSet::contains(Events event) const noexcept {
 bool operator==(EventsSet lhs, EventsSet rhs) {
   return lhs.events_ == rhs.events_;
 }
+bool operator!=(EventsSet lhs, EventsSet rhs) { return !(lhs == rhs); }

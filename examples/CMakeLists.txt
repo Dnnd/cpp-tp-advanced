@@ -24,3 +24,12 @@ target_link_libraries(http-example tcp)
 
 add_executable(shmem-example shmem-example/main.cpp)
 target_link_libraries(shmem-example shmem pthread)
+
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
+
+add_executable(http-server-example http-example/http.cpp)
+
+target_include_directories(http-server-example PUBLIC http-example/include)
+target_link_libraries(http-server-example http Threads::Threads)
+

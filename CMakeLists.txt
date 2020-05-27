@@ -13,6 +13,7 @@ set(LOG_SOURCES lib/log/base_logger.cpp
         lib/log/stderr_logger.cpp
         lib/log/stdout_logger.cpp
         lib/log/file_logger.cpp
+        lib/log/thread_safe_logger.cpp
         lib/log/logger.cpp
         lib/log/message.cpp
         lib/log/exceptions.cpp)
@@ -43,3 +44,24 @@ set(SHMEM_SOURCE
 add_library(shmem STATIC ${SHMEM_SOURCE})
 target_include_directories(shmem PUBLIC include)
 
+set(HTTP_SOURCES
+        lib/http/http_server.cpp
+        lib/http/protocol.cpp
+        lib/http/parser.cpp
+        lib/http/utils.cpp
+        lib/http/http_worker.cpp
+        lib/http/exceptions.cpp
+        lib/http/connection_handler.cpp
+        lib/http/http_request.cpp
+        lib/http/http_response.cpp
+
+        )
+add_library(http STATIC ${HTTP_SOURCES})
+target_include_directories(http PUBLIC include)
+target_link_libraries(http PUBLIC tcp coroutine)
+target_link_libraries(http PUBLIC tcp coroutine log)
+
+set(CORO_SOURCES
+        lib/coroutine/coroutine.cpp)
+add_library(coroutine STATIC ${CORO_SOURCES})
+target_include_directories(coroutine PUBLIC include/coroutine)
