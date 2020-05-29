@@ -28,7 +28,7 @@ GeneratorConfig parse_cli_opts(int argc, char *const argv[]) {
     case 's':
       parsed_config.keys_step = std::stoull(optarg);
       break;
-    case 'f':
+    case 'k':
       parsed_config.filename = optarg;
       break;
     case '?':
