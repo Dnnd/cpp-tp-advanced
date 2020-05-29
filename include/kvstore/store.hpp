@@ -20,7 +20,7 @@ public:
   std::optional<Data> get(Key key) {
     auto page_bounds = index_.find_page(key);
     if (page_bounds) {
-      auto &&[page_begin, page_end] = page_bounds.value();
+      auto [page_begin, page_end] = page_bounds.value();
       return find_by_key(key, page_begin, page_end);
     }
     return {};

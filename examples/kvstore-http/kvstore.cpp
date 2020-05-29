@@ -22,7 +22,7 @@ public:
       return HttpResponse().setStatusCode(HttpStatusCode::BAD_REQUEST);
     }
     Key key;
-    auto &&[last, ec] = std::from_chars(key_str->data(), &key_str->back() + 1, key);
+    auto [last, ec] = std::from_chars(key_str->begin(), key_str->end(), key);
     if (ec != std::errc()) {
       return HttpResponse().setStatusCode(HttpStatusCode::BAD_REQUEST);
     }
@@ -55,10 +55,11 @@ int main(int argc, char **argv) {
   } else {
     logger = std::make_unique<log::ThreadSafeStdErrLogger>();
   }
-  KVStore<Key, Data> kvstore{cfg.kvstore_file, cfg.kvstore_size * sizeof(Data), 1024};
+  KVStore<Key, Data> kvstore{cfg.kvstore_file, cfg.kvstore_size * sizeof(Data),
+                             1024};
   logger->set_level(cfg.log_level);
-  auto echo_server = std::make_unique<HttpKVStoreServer>(
-      cfg.hostname, cfg.port, cfg.concurrency, cfg.timeout, std::move(logger),
-      std::move(kvstore));
-  echo_server->run();
+  HttpKVStoreServer kvserver{cfg.hostname,      cfg.port,
+                             cfg.concurrency,   cfg.timeout,
+                             std::move(logger), std::move(kvstore)};
+  kvserver.run();
 }
