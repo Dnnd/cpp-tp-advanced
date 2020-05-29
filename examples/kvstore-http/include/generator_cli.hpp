@@ -17,7 +17,7 @@ struct GeneratorConfig {
 GeneratorConfig parse_cli_opts(int argc, char *const argv[]) {
   GeneratorConfig parsed_config{};
   while (true) {
-    int opt = getopt(argc, argv, "f:n:s");
+    int opt = getopt(argc, argv, "k:n:s:");
     if (opt == -1) {
       break;
     }
