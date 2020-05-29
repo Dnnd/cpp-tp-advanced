@@ -12,7 +12,7 @@ public:
     std::size_t data_size = sizeof(Data);
     page_size = data_size * keys_per_index_page;
     last_page_size = file.size() % page_size;
-
+    last_page_size = (last_page_size == 0) ? page_size : last_page_size;
     for (size_t i = 0; i < file.size(); i += page_size) {
       Data d = file.read_at<Data>(i);
       store_[d.key] = i;
