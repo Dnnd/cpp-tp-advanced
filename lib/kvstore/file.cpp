@@ -22,7 +22,7 @@ File::File(const std::filesystem::path &path, std::size_t size, File::Mode mode)
   char *file = static_cast<char *>(
       mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd.get(), 0));
   if (file == MAP_FAILED) {
-    throw std::runtime_error(std::strerror(errno));
+    throw ErrnoException("fail to mmap file", errno);
   }
   data_ = file;
 }
