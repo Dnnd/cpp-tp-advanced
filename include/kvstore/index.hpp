@@ -11,6 +11,8 @@ public:
   KVIndex(const File &file, size_t keys_per_index_page) {
     std::size_t data_size = sizeof(Data);
     page_size = data_size * keys_per_index_page;
+    last_page_size = file.size() % page_size;
+
     for (size_t i = 0; i < file.size(); i += page_size) {
       Data d = file.read_at<Data>(i);
       store_[d.key] = i;
@@ -21,9 +23,12 @@ public:
     auto itlow = store_.lower_bound(key);
     if (itlow->first == key) {
       return {{itlow->second, itlow->second + page_size}};
-    } else if (itlow != store_.begin()) {
+    } else if (itlow != store_.begin() && itlow != store_.end()) {
       itlow--;
       return {{itlow->second, itlow->second + page_size}};
+    } else if (itlow == store_.end()) {
+      itlow--;
+      return {{itlow->second, itlow->second + last_page_size}};
     }
     return {};
   }
@@ -31,5 +36,6 @@ public:
 private:
   std::map<Key, std::size_t> store_;
   size_t page_size{0};
+  size_t last_page_size{0};
 };
 #endif // PROCESS_WRAPPER_INCLUDE_KVSTORE_INDEX_HPP_

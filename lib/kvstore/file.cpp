@@ -1,6 +1,7 @@
 #include "kvstore/file.hpp"
+#include "kvstore/descriptor.hpp"
+#include "kvstore/exceptions.hpp"
 #include <cstring>
-#include <kvstore/descriptor.hpp>
 #include <sys/fcntl.h>
 #include <sys/mman.h>
 
@@ -11,7 +12,7 @@ File::File(const std::filesystem::path &path, std::size_t size, File::Mode mode)
     char *file = static_cast<char *>(
         mmap(nullptr, size, PROT_READ, MAP_PRIVATE, fd.get(), 0));
     if (file == MAP_FAILED) {
-      throw std::runtime_error(std::strerror(errno));
+      throw ErrnoException("fail to mmap file", errno);
     }
     data_ = file;
     return;

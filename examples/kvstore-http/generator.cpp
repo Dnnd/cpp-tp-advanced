@@ -5,6 +5,7 @@
 #include "kvstore/file.hpp"
 #include <cstring>
 #include <filesystem>
+#include <iostream>
 #include <sys/fcntl.h>
 #include <sys/mman.h>
 #include <unistd.h>
@@ -13,7 +14,8 @@
 File create_and_map(std::filesystem::path dest, size_t size) {
   Descriptor fd{open(dest.c_str(), O_RDWR | O_CREAT | O_TRUNC, 0600)};
   if (fd.get() == -1) {
-    throw ErrnoException("unable to create new file or truncate existing file", errno);
+    throw ErrnoException("unable to create new file or truncate existing file",
+                         errno);
   }
   lseek(fd.get(), size + 1, SEEK_SET);
   write(fd.get(), "", 1);
@@ -33,15 +35,28 @@ void generate_data(std::filesystem::path dest, size_t keys, size_t step) {
   size_t chunk_size = (4096 < keys) ? 4096 : keys;
   File data = create_and_map(dest, keys * sizeof(Data));
   std::vector<Data> data_page(chunk_size);
-  for (size_t i = 0; i < keys; i += chunk_size) {
+
+  size_t rest = keys % chunk_size;
+  for (size_t i = 0; i < keys - rest; i += chunk_size) {
     fill_data_page(data_page, i * step, step);
     for (size_t j = 0; j < data_page.size(); ++j) {
       data.write_at<Data>(data_page[j], (i + j) * sizeof(Data));
     }
   }
+
+  if (rest == 0) {
+    return;
+  }
+  data_page.resize(rest);
+  size_t rest_begin = keys - rest;
+  fill_data_page(data_page, rest_begin * step, step);
+  for (size_t j = 0; j < data_page.size(); ++j) {
+    data.write_at<Data>(data_page[j], (rest_begin + j) * sizeof(Data));
+  }
 }
 
 int main(int argc, char **argv) {
   GeneratorConfig cfg = parse_cli_opts(argc, argv);
+  std::cout << "generating: " << cfg.keys_number << " keys in " << cfg.filename;
   generate_data(cfg.filename, cfg.keys_number, cfg.keys_step);
 }
