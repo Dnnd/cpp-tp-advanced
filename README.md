@@ -76,3 +76,23 @@ cmake -B ./build
 cmake —build build
 build/examples/http-server-example  [-h HOST_URL] [-p PORTNAME] [-d | -i | -e | -w] [-l LOGFILE]
 ```
+
+## Домашнее задание 7
+```
+cmake -B ./build
+cmake —build build
+build/examples/kvstore-generator  [-k PATH_TO_STORAGE] [-s STEP] [-s KEYS_NUMBER]
+```
+`PATH_TO_STORAGE` - путь до генерируемого файла с данными
+
+`STEP` - шаг, с которым генерируются ключи. Например, при STEP = 100, будут генерироваться ключи 0, 100, 200...
+
+`KEYS_NUMBER` - количество сгенерированных ключей. 
+
+```
+build/examples/kvstore-http  [-k PATH_TO_STORAGE] [-s KEYS_NUMBER] [-h HOST_URL] [-p PORTNAME] [-d | -i | -e | -w] [-l LOGFILE]
+```
+
+`PATH_TO_STORAGE` - путь до файла с данными
+
+`KEYS_NUMBER` - количество ключей в файле с данными
