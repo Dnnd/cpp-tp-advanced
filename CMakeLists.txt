@@ -65,3 +65,13 @@ set(CORO_SOURCES
         lib/coroutine/coroutine.cpp)
 add_library(coroutine STATIC ${CORO_SOURCES})
 target_include_directories(coroutine PUBLIC include/coroutine)
+
+set(KVSTORE_SOURCES
+        lib/kvstore/file.cpp
+        lib/kvstore/descriptor.cpp
+        lib/kvstore/exceptions.cpp
+        include/kvstore/index.hpp
+        include/kvstore/store.hpp
+        )
+add_library(kvstore STATIC ${KVSTORE_SOURCES})
+target_include_directories(kvstore PUBLIC include)
