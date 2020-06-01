@@ -33,3 +33,10 @@ add_executable(http-server-example http-example/http.cpp)
 target_include_directories(http-server-example PUBLIC http-example/include)
 target_link_libraries(http-server-example http Threads::Threads)
 
+add_executable(kvstore-http kvstore-http/kvstore.cpp)
+target_include_directories(kvstore-http PUBLIC kvstore-http/include)
+target_link_libraries(kvstore-http http kvstore Threads::Threads)
+
+add_executable(kvstore-generator kvstore-http/generator.cpp)
+target_include_directories(kvstore-generator PUBLIC kvstore-http/include)
+target_link_libraries(kvstore-generator kvstore)
